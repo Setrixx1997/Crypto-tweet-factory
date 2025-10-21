@@ -52,6 +52,9 @@ h1{margin:0;font-size:20px;color:var(--neon)}
   padding:10px 12px;border-radius:12px;outline:none}
 select{background:#0b141b;color:#dfe8f4;border:1px solid #13212c;
   padding:8px 10px;border-radius:10px;font-weight:700}
+.placeholder{
+  color:var(--muted);font-size:14px;margin-top:4px;text-align:center;
+}
 .toast{
   position:fixed;bottom:28px;left:50%;transform:translateX(-50%);
   background:#0e1b13;border:1px solid #1b3927;padding:10px 20px;
@@ -84,7 +87,9 @@ select{background:#0b141b;color:#dfe8f4;border:1px solid #13212c;
     </select>
   </div>
 
-  <div id="tweet-box">Loading tweet...</div>
+  <!-- Startzustand: leer -->
+  <div id="tweet-box"></div>
+  <div class="placeholder">Click “Generate” to create a tweet</div>
   <div class="countdown" id="countdown"></div>
 
   <div class="actions">
@@ -143,12 +148,21 @@ function buildSentence(keyword,len){
 let history=[],current="",autoTimer=null,INTERVAL=5000,countTimer=null;
 const tweetBox=document.getElementById("tweet-box"),searchEl=document.getElementById("search"),
 lenEl=document.getElementById("length"),countdown=document.getElementById("countdown");
+const placeholderEl = document.querySelector('.placeholder');
+
 function generate(){
   if(current)history.push(current);
   current=buildSentence(searchEl.value,lenEl.value);
-  tweetBox.textContent=current;resetCountdown();
+  tweetBox.textContent=current;
+  if(placeholderEl) placeholderEl.style.display='none';
+  resetCountdown();
 }
-function back(){if(!history.length)return;current=history.pop();tweetBox.textContent=current;resetCountdown();}
+function back(){
+  if(!history.length)return;
+  current=history.pop();
+  tweetBox.textContent=current;
+  resetCountdown();
+}
 function setAuto(on){
   const autoBtn=document.getElementById("auto");
   if(on){if(autoTimer)return;autoTimer=setInterval(generate,INTERVAL);autoBtn.textContent="Auto Mode : ON";}
@@ -165,10 +179,19 @@ function resetCountdown(){
 
 document.getElementById("generate").onclick=generate;
 document.getElementById("back").onclick=back;
-document.getElementById("tweet").onclick=()=>window.open("https://twitter.com/intent/tweet?text="+encodeURIComponent(current),"_blank");
-document.getElementById("copy").onclick=async()=>{await navigator.clipboard.writeText(current);showToast("Copied ✅");};
+document.getElementById("tweet").onclick=()=>{
+  if(!current) return showToast("Generate a tweet first");
+  window.open("https://twitter.com/intent/tweet?text="+encodeURIComponent(current),"_blank");
+};
+document.getElementById("copy").onclick=async()=>{
+  if(!current) return showToast("Generate a tweet first");
+  await navigator.clipboard.writeText(current);
+  showToast("Copied ✅");
+};
 document.getElementById("auto").onclick=()=>setAuto(!autoTimer);
 document.getElementById("speed").onchange=e=>{INTERVAL=parseInt(e.target.value)||5000;if(autoTimer){setAuto(false);setAuto(true);}};
+
+// Kein Auto-Generate beim Laden, Startzustand bleibt leer
 </script>
 </body>
 </html>
