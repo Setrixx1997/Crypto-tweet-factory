@@ -24,16 +24,14 @@ body{
 header{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}
 h1{margin:0;font-size:20px;color:var(--neon)}
 .right{display:flex;gap:8px;align-items:center}
-.addrBtn{
-  background:#0f1a12;border:1px solid #1b3927;color:#bfffd3;
-  border-radius:10px;padding:8px 12px;font-weight:800;cursor:pointer;
+.tipLabel{
+  color:var(--neon);
+  font-weight:800;
+  background:#0f1a12;
+  border:1px solid #1b3927;
+  border-radius:10px;
+  padding:8px 14px;
 }
-.addrBtn:hover{filter:brightness(1.05)}
-.tipBtn{
-  background:var(--neon);color:#001c09;font-weight:800;border:none;border-radius:10px;
-  padding:8px 14px;cursor:pointer;transition:transform .15s ease,opacity .15s ease;
-}
-.tipBtn:hover{transform:scale(1.05);opacity:.92}
 .btn{border:none;border-radius:10px;padding:10px 16px;font-weight:800;cursor:pointer;font-size:15px}
 .btn.gen{background:var(--neon);color:#001c09}
 .btn.tweet{background:var(--blue);color:#001426}
@@ -64,10 +62,10 @@ select{background:#0b141b;color:#dfe8f4;border:1px solid #13212c;
 <body>
 <div class="wrap">
   <header>
-    <h1>Crypto Tweet Factory <span class="small" id="rpcLabel"></span></h1>
+    <h1>Crypto Tweet Factory</h1>
     <div class="right">
-      <button id="addrBtn" class="addrBtn" title="Click to copy">77M7...mRjv</button>
-      <button id="tipBtn" class="tipBtn">💰 Tip 0.1 SOL</button>
+      <!-- Sichtbarer grüner Tip-Label -->
+      <div class="tipLabel">💰 Tip: 77M7...mRjv</div>
     </div>
   </header>
 
@@ -103,187 +101,7 @@ select{background:#0b141b;color:#dfe8f4;border:1px solid #13212c;
   </div>
 </div>
 
-<!-- web3.js für Phantom -->
-<script src="https://unpkg.com/@solana/web3.js@1.95.3/lib/index.iife.min.js"></script>
-
 <script>
-// ===== Phantom Tip mit RPC-Rotation + v0/legacy Fallback, getrennte Copy-Adresse =====
-const WALLET_SOL = "77M7waPc3o6uEpwHxnNRzJ9Ga47gnFPZVJKu3AP1mRjv";
-const TIP_AMOUNT_SOL = 0.1;
-
-// Mehrere öffentliche RPCs (ohne API-Key)
-const RPCS = [
-  "https://rpc.ankr.com/solana",
-  "https://solana-api.projectserum.com",
-  "https://api.mainnet-beta.solana.com"
-];
-
-let phantomProvider = null;
-let phantomConnected = false;
-let phantomPubkey = null;
-let currentRpc = null;
-
-function showToast(msg){
-  const t=document.createElement('div'); t.className='toast'; t.textContent=msg;
-  document.body.appendChild(t);
-  requestAnimationFrame(()=>{t.style.opacity='1';t.style.transform='translate(-50%,0)';});
-  setTimeout(()=>{t.style.opacity='0';t.style.transform='translate(-50%,6px)';},1800);
-  setTimeout(()=>t.remove(),2200);
-}
-
-function setRpcLabel(txt){
-  const el=document.getElementById('rpcLabel');
-  el.textContent = txt ? `RPC: ${txt}` : "";
-}
-
-function getProvider(){
-  const p = window.solana || (window.phantom && window.phantom.solana);
-  return (p && p.isPhantom) ? p : null;
-}
-
-function wireProviderEvents(p){
-  if(!p || p.__wired) return;
-  p.on('connect', (pubkey)=>{ phantomConnected = true; phantomPubkey = pubkey; showToast('Phantom connected ✅'); });
-  p.on('disconnect', ()=>{ phantomConnected = false; phantomPubkey = null; showToast('Phantom disconnected'); });
-  p.__wired = true;
-}
-
-async function getConn(){
-  for(const url of RPCS){
-    try {
-      const c = new solanaWeb3.Connection(url, "confirmed");
-      await c.getEpochInfo();
-      currentRpc = url;
-      setRpcLabel(new URL(url).hostname);
-      return c;
-    } catch (e) {}
-  }
-  throw new Error("No RPC reachable");
-}
-
-async function ensureConnected(){
-  phantomProvider = getProvider();
-  if(!phantomProvider){
-    showToast("Phantom not found — install the extension.");
-    window.open("https://phantom.app/", "_blank");
-    throw new Error("No Phantom");
-  }
-  wireProviderEvents(phantomProvider);
-
-  if(phantomProvider.isConnected || phantomConnected){
-    phantomConnected = true;
-    phantomPubkey = phantomProvider.publicKey || phantomPubkey;
-    return phantomPubkey;
-  }
-  const res = await phantomProvider.connect({ onlyIfTrusted:false });
-  phantomConnected = true;
-  phantomPubkey = res?.publicKey || phantomProvider.publicKey;
-  return phantomPubkey;
-}
-
-async function buildV0Transfer(fromPubkey, toPubkey, lamports, conn){
-  const { blockhash, lastValidBlockHeight } = await conn.getLatestBlockhash('finalized');
-  const ix = solanaWeb3.SystemProgram.transfer({ fromPubkey, toPubkey, lamports });
-  const msgV0 = new solanaWeb3.TransactionMessage({
-    payerKey: fromPubkey,
-    recentBlockhash: blockhash,
-    instructions: [ix],
-  }).compileToV0Message();
-  const tx = new solanaWeb3.VersionedTransaction(msgV0);
-  return { tx, blockhash, lastValidBlockHeight };
-}
-
-async function buildLegacyTransfer(fromPubkey, toPubkey, lamports, conn){
-  const { blockhash, lastValidBlockHeight } = await conn.getLatestBlockhash('finalized');
-  const tx = new solanaWeb3.Transaction({ feePayer: fromPubkey, recentBlockhash: blockhash })
-    .add(solanaWeb3.SystemProgram.transfer({ fromPubkey, toPubkey, lamports }));
-  return { tx, blockhash, lastValidBlockHeight };
-}
-
-async function sendTip(amountSol){
-  let conn;
-  try{
-    conn = await getConn();
-  }catch(e){
-    showToast("All RPCs blocked ❌ — opening wallet link");
-    const url = `https://phantom.app/ul/transfer?recipient=${encodeURIComponent(WALLET_SOL)}&amount=${encodeURIComponent(amountSol)}&label=${encodeURIComponent("Crypto Tweet Factory")}&message=${encodeURIComponent("Thanks!")}`;
-    window.open(url, "_blank");
-    return;
-  }
-
-  const fromPubkey = phantomPubkey;
-  const toPubkey   = new solanaWeb3.PublicKey(WALLET_SOL);
-  const lamports   = Math.floor(amountSol * solanaWeb3.LAMPORTS_PER_SOL);
-
-  let signature, meta;
-
-  try{
-    meta = await buildV0Transfer(fromPubkey, toPubkey, lamports, conn);
-    if (phantomProvider.signAndSendTransaction) {
-      const res = await phantomProvider.signAndSendTransaction(meta.tx);
-      signature = res.signature || res;
-    } else {
-      const signed = await phantomProvider.signTransaction(meta.tx);
-      signature = await conn.sendRawTransaction(signed.serialize(), { skipPreflight:false });
-    }
-  }catch(errV0){
-    try{
-      meta = await buildLegacyTransfer(fromPubkey, toPubkey, lamports, conn);
-      if (phantomProvider.signAndSendTransaction) {
-        const res = await phantomProvider.signAndSendTransaction(meta.tx);
-        signature = res.signature || res;
-      } else {
-        const signed = await phantomProvider.signTransaction(meta.tx);
-        signature = await conn.sendRawTransaction(signed.serialize(), { skipPreflight:false });
-      }
-    }catch(errLegacy){
-      const msg = (errLegacy && (errLegacy.message || errLegacy.toString())) || "Unknown";
-      if(msg.includes("403") || msg.toLowerCase().includes("forbidden")){
-        showToast("RPC 403 — switching…");
-        try{
-          await getConn();
-          return await sendTip(amountSol);
-        }catch(e2){
-          showToast("All RPCs refused ❌ — opening wallet link");
-          const url = `https://phantom.app/ul/transfer?recipient=${encodeURIComponent(WALLET_SOL)}&amount=${encodeURIComponent(amountSol)}&label=${encodeURIComponent("Crypto Tweet Factory")}&message=${encodeURIComponent("Thanks!")}`;
-          window.open(url, "_blank");
-          return;
-        }
-      }
-      const code = (errLegacy && (errLegacy.code || errLegacy.error?.code));
-      if(code === 4001) showToast('User rejected in wallet ❌');
-      else showToast(`Failed ❌ ${msg}`.slice(0,90));
-      throw errLegacy;
-    }
-  }
-
-  showToast("Submitted 🟢");
-  try{
-    await conn.confirmTransaction({ signature, blockhash: meta.blockhash, lastValidBlockHeight: meta.lastValidBlockHeight }, "confirmed");
-  }catch{}
-  setTimeout(()=> window.open(`https://solscan.io/tx/${signature}`, "_blank"), 400);
-}
-
-// ===== Header Controls =====
-// Copy-Address (separat)
-document.getElementById("addrBtn").addEventListener("click", async ()=>{
-  try{ await navigator.clipboard.writeText(WALLET_SOL); showToast("Address copied ✅"); }catch(e){ showToast("Copy failed ❌"); }
-});
-
-// Tip-Button (kein Copy mehr, nur Connect → Send)
-document.getElementById("tipBtn").addEventListener("click", async ()=>{
-  try{
-    if(!phantomConnected || !phantomProvider?.isConnected){
-      await ensureConnected();
-      showToast("Connected — click again to send 0.1 SOL");
-      return;
-    }
-    await sendTip(TIP_AMOUNT_SOL);
-  }catch(e){
-    console.error(e);
-  }
-});
-
 // ====== Tweet Generator ======
 const intros=["Honestly","Some days","Not gonna lie","Lately","Tell me why","Apparently","It's wild that","Sometimes I feel like","Just realized","You ever notice"];
 const subjects=["the market","crypto","this coin","my portfolio","the charts","everything on-chain","my trades","my patience","these bags","my screen time"];
@@ -329,11 +147,9 @@ document.getElementById("generate").onclick=generate;
 document.getElementById("searchGen").onclick=generate;
 document.getElementById("back").onclick=back;
 document.getElementById("tweet").onclick=()=>window.open("https://twitter.com/intent/tweet?text="+encodeURIComponent(current),"_blank");
-document.getElementById("copy").onclick=async()=>{await navigator.clipboard.writeText(current);showToast("Copied ✅")};
+document.getElementById("copy").onclick=async()=>{await navigator.clipboard.writeText(current);showToast?.("Copied ✅")};
 document.getElementById("auto").onclick=()=>setAuto(!autoTimer);
 document.getElementById("speed").onchange=e=>{INTERVAL=parseInt(e.target.value)||5000;if(autoTimer){setAuto(false);setAuto(true);}};
-
-generate();
 </script>
 </body>
 </html>
