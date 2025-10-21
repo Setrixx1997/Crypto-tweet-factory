@@ -1,306 +1,239 @@
 <!doctype html>
-<html lang="de">
+<html lang="en">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Crypto Tweet Factory</title>
+<title>Crypto Tweet Factory — Stable Buttons</title>
 <style>
-:root{
-  --bg:#050708;--panel:#0b1115;--line:#13212c;
-  --muted:#8aa1b1;--neon:#4ade80;--blue:#60aaff;
-}
-*{box-sizing:border-box}
-body{
-  margin:0;background:linear-gradient(180deg,#050708,#081019);
-  color:#e6eef8;font-family:Inter,system-ui,Segoe UI,Roboto,Arial;
-  min-height:100vh;display:flex;align-items:center;justify-content:center;padding:22px;
-}
-.wrap{
-  width:min(980px,96vw);
-  background:linear-gradient(180deg,rgba(255,255,255,.03),rgba(255,255,255,.02));
-  border:1px solid var(--line);border-radius:16px;padding:18px;
-  box-shadow:0 12px 36px rgba(0,0,0,.35);
-  position:relative;
-}
+:root{--bg:#050708;--bg2:#081019;--panel:#0b1115;--line:#13212c;--text:#e6eef8;--muted:#8aa1b1;--neon:#4ade80;--blue:#60aaff;--btn:#0d151c;--btnLine:#0f1820;--copy:#cfeaff}
+:root.theme-neon{--bg:#020409;--bg2:#050b14;--panel:#071018;--line:#163242;--text:#e9f6ff;--muted:#9dc1d9;--neon:#5bffa1;--blue:#7ac2ff;--btn:#0a1420;--btnLine:#102133;--copy:#e6f2ff}
+*{box-sizing:border-box}body{margin:0;background:linear-gradient(180deg,var(--bg),var(--bg2));color:var(--text);font-family:Inter,system-ui,Segoe UI,Roboto,Arial;min-height:100vh;display:flex;align-items:flex-start;justify-content:center;padding:22px}
+.wrap{width:min(980px,96vw);background:radial-gradient(1200px 300px at -10% -10%, rgba(90,255,180,.06), transparent 60%),radial-gradient(1000px 280px at 110% 10%, rgba(96,170,255,.06), transparent 65%),linear-gradient(180deg, rgba(255,255,255,.03), rgba(255,255,255,.02));border:1px solid var(--line);border-radius:16px;padding:18px;box-shadow:0 12px 36px rgba(0,0,0,.35);position:relative}
 header{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}
-h1{margin:0;font-size:20px;color:var(--neon)}
+h1{margin:0;font-size:20px;color:var(--neon);text-shadow:0 0 12px rgba(91,255,161,.35)}
 .right{display:flex;gap:8px;align-items:center}
-.tipLabel{
-  color:var(--neon);
-  font-weight:800;
-  background:#0f1a12;
-  border:1px solid #1b3927;
-  border-radius:10px;
-  padding:8px 14px;
-  cursor:pointer;
-  transition:transform .15s ease,opacity .15s ease;
-}
-.tipLabel:hover{transform:scale(1.05);opacity:.9;}
 .btn{border:none;border-radius:10px;padding:10px 16px;font-weight:800;cursor:pointer;font-size:15px}
-.btn.gen{background:var(--neon);color:#001c09}
-.btn.tweet{background:var(--blue);color:#001426}
-.btn.copy,.btn.back,.btn.toggle{background:transparent;border:1px solid var(--line);color:#cfeaff}
-#tweet-box{
-  background:var(--panel);border:1px solid var(--line);
-  border-radius:12px;padding:24px;margin:12px 0;text-align:center;
-  font-size:18px;line-height:1.45;box-shadow:0 0 12px rgba(74,222,128,0.2);
-  min-height:96px;display:flex;align-items:center;justify-content:center;
-}
+.btn.gen{background:var(--neon);color:#001c09}.btn.tweet{background:var(--blue);color:#001426}
+.btn.copy,.btn.back,.btn.small,.btn.toggle{background:transparent;border:1px solid var(--line);color:var(--copy);background:var(--btn)}
+.input{flex:1 1 360px;background:var(--btn);color:#dfe8f4;border:1px solid var(--btnLine);padding:10px 12px;border-radius:12px;outline:none}
+select{background:#0b141b;color:#dfe8f4;border:1px solid var(--line);padding:8px 10px;border-radius:10px;font-weight:700}
+#tweet-box{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:24px;margin:12px 0 6px;text-align:center;font-size:18px;line-height:1.45;min-height:160px;display:flex;align-items:center;justify-content:center}
 .actions{display:flex;gap:8px;flex-wrap:wrap;justify-content:center;margin-top:8px}
 .countdown{margin-top:6px;text-align:center;color:#9ec1ff;font-size:13px;min-height:18px}
-.topbar{display:flex;gap:8px;flex-wrap:wrap;margin:10px 0}
-.input{flex:1 1 360px;background:#0d151c;color:#dfe8f4;border:1px solid #0f1820;
-  padding:10px 12px;border-radius:12px;outline:none}
-select{background:#0b141b;color:#dfe8f4;border:1px solid #13212c;
-  padding:8px 10px;border-radius:10px;font-weight:700}
-.placeholder{
-  color:var(--muted);font-size:14px;margin-top:4px;text-align:center;
-}
-.toast{
-  position:fixed;bottom:28px;left:50%;transform:translateX(-50%);
-  background:#0e1b13;border:1px solid #1b3927;padding:10px 20px;
-  border-radius:12px;color:#9fffb9;font-weight:600;
-  box-shadow:0 0 15px rgba(74,222,128,.3);opacity:0;
-  transition:opacity .25s,transform .25s;z-index:9999;
-}
-.brand{
-  position:fixed;left:18px;bottom:18px;color:var(--neon);
-  opacity:.85;font-weight:800;letter-spacing:.3px;font-size:12px;
-  background:#0f1a12;border:1px solid #1b3927;border-radius:10px;padding:6px 10px;
-}
+.toast{position:fixed;bottom:28px;left:50%;transform:translateX(-50%);background:#0e1b13;border:1px solid #1b3927;padding:10px 20px;border-radius:12px;color:#9fffb9;font-weight:600;box-shadow:0 0 15px rgba(74,222,128,.3);opacity:0;transition:opacity .25s,transform .25s;z-index:9999}
+.brand{position:fixed;left:18px;bottom:18px;color:var(--neon);opacity:.85;font-weight:800;letter-spacing:.3px;font-size:12px;background:#0f1a12;border:1px solid #1b3927;border-radius:10px;padding:6px 10px}
+.vwrap{display:flex;align-items:center;gap:10px;margin:6px 0 2px}
+.vbar{flex:1;height:10px;border-radius:999px;background:#0c1418;border:1px solid #153224;position:relative;overflow:hidden}
+.vfill{position:absolute;left:0;top:0;bottom:0;width:0%;background:linear-gradient(90deg,#ff5151,#ffd257,#7dff7d,#60aaff);transition:width .3s ease}
+.vnum{min-width:56px;text-align:right;font-weight:900;color:#cfeaff}
+.vtips{font-size:12px;color:var(--muted);margin-top:2px;text-align:center}
+#auto.boost{position:relative;background:#0e1620;border:1px solid #1b2f45;color:#cfeaff;box-shadow:0 0 0 2px rgba(96,170,255,.28),0 0 26px rgba(96,170,255,.45),inset 0 0 18px rgba(96,170,255,.18);animation:autoPulseBlue 1.6s ease-in-out infinite}
+@keyframes autoPulseBlue{0%,100%{box-shadow:0 0 0 2px rgba(96,170,255,.24),0 0 20px rgba(96,170,255,.35),inset 0 0 14px rgba(96,170,255,.14)}50%{box-shadow:0 0 0 2px rgba(96,170,255,.36),0 0 32px rgba(96,170,255,.55),inset 0 0 22px rgba(96,170,255,.24)}}
+.hookToggle{background:#0f1a12;border:1px solid #1b3927;color:#bfffd3;border-radius:10px;padding:8px 12px;font-weight:800;cursor:pointer}
+.hookToggle.active{background:#16321f;border-color:#2a5b3a;box-shadow:0 0 0 2px rgba(74,222,128,.25),0 0 22px rgba(74,222,128,.35)}
+.themeToggle{background:transparent;border:1px solid var(--line);color:var(--copy);border-radius:999px;padding:8px 14px;font-weight:800;cursor:pointer}
+/* Sidebar Rank */
+#leftSidebar{position:fixed;left:-260px;top:22px;z-index:40;width:260px;transition:left .25s ease}
+#leftSidebar[data-open=true]{left:12px}
+#sidebarCard{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:12px;box-shadow:0 10px 30px rgba(0,0,0,.35);max-height:calc(100vh - 44px);overflow:auto}
+#sideHandle{position:fixed;left:0;top:120px;z-index:41;background:#0f1a12;border:1px solid #1b3927;border-left:none;border-radius:0 10px 10px 0;padding:10px 8px;color:#9fffb9;font-weight:800;cursor:pointer;box-shadow:0 4px 14px rgba(0,0,0,.35)}
 </style>
+<script>
+try{if(localStorage.getItem('ctf_theme')==='neon'){document.documentElement.classList.add('theme-neon')}}catch(e){}
+</script>
 </head>
 <body>
-<div class="wrap">
-  <header>
-    <h1>Crypto Tweet Factory</h1>
-    <div class="right">
-      <!-- Klickbare grüne Tip-Wallet -->
-      <div class="tipLabel" id="tipWallet">💰 Tip: 77M7...mRjv</div>
-    </div>
-  </header>
+<div id="sideHandle" title="Toggle Tweet Rank">🏅</div>
+<div id="leftSidebar" data-open="true"><div id="sidebarCard">
+  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px"><strong style="color:#9fe6b8">🏅 Tweet Rank</strong><button id="toggleSidebar" class="btn small" style="padding:6px 10px">◀</button></div>
+  <div id="rankNow" style="display:flex;align-items:center;gap:8px;margin-bottom:10px"><div id="rankBadgeBig" style="font-size:22px">🥉</div><div><div id="rankTitle" style="font-weight:800">Bronze I</div><div id="rankXPText" style="font-size:12px;color:#8aa1b1">0 / 10 XP</div></div></div>
+  <div class="rankBar" style="height:10px;border-radius:999px;background:#0c1418;border:1px solid #153224;position:relative;overflow:hidden;margin-bottom:8px"><div id="rankFill" style="position:absolute;left:0;top:0;bottom:0;width:0%;background:linear-gradient(90deg,#ffd257,#7dff7d,#60aaff)"></div></div>
+  <div id="rankNext" style="font-size:12px;color:#9ec1ff;margin-bottom:6px">Next: Silver I at 10 XP</div><div id="rankDbg" style="font-size:11px;color:#86aad8;margin-top:0;opacity:.8"></div>
+  <div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:8px"><button id="resetRank" class="btn small" title="Reset local XP">Reset</button><button id="exportRank" class="btn small" title="Export XP">Export</button><button id="importRank" class="btn small" title="Import XP">Import</button></div>
+</div></div>
 
-  <div class="topbar">
+<div class="wrap">
+  <header><h1>Crypto Tweet Factory</h1><div class="right">
+    <button id="analyzeBtn" class="btn small" title="Analyze your text">🧪 Analyze</button>
+    <button id="hookToggle" class="hookToggle" title="Boost hook & punch">🔥 Hook Boost OFF</button>
+    <button id="themeBtn" class="themeToggle">Theme: Dark</button>
+    <button id="muteBtn" class="themeToggle">🔊 Sound On</button>
+  </div></header>
+
+  <div class="topbar" style="display:flex;gap:8px;flex-wrap:wrap;margin:10px 0">
     <input id="search" class="input" placeholder="Type a keyword (e.g., PEPE, Solana, Elon)">
-    <select id="tone">
-      <option value="funny">Funny 😆</option>
-      <option value="sarcastic">Sarcastic 😏</option>
-      <option value="motivational">Motivational 💪</option>
-    </select>
-    <select id="length">
-      <option value="short" selected>Short (≤150)</option>
-      <option value="long">Long (200–250)</option>
-    </select>
+    <select id="length"><option value="short" selected>Short (≤150)</option><option value="long">Long (200–250)</option></select>
   </div>
 
-  <!-- Startzustand: leer -->
-  <div id="tweet-box"></div>
-  <div class="placeholder">Click “Generate” to create a tweet</div>
+  <div id="tweet-box">Click “Generate” to create a tweet</div>
+  <div class="vwrap" id="vwrap" style="display:none"><div class="vbar"><div id="vfill" class="vfill"></div></div><div id="vnum" class="vnum">0</div></div>
+  <div class="vtips" id="vtips" style="display:none">Tip: keep it punchy (110–180 chars), max 1 emoji.</div>
+  <div class="vtips" id="vquote" style="display:none;font-style:italic;opacity:.9"></div>
   <div class="countdown" id="countdown"></div>
 
   <div class="actions">
     <button id="back" class="btn back">⬅ Back</button>
-    <button id="generate" class="btn gen">Generate</button>
+    <button id="generate2" class="btn gen">Generate</button>
     <button id="tweet" class="btn tweet">Tweet</button>
     <button id="copy" class="btn copy">Copy</button>
     <button id="auto" class="btn toggle">Auto Mode : OFF</button>
-    <select id="speed">
-      <option value="3000">3s</option>
-      <option value="5000" selected>5s</option>
-      <option value="10000">10s</option>
-      <option value="15000">15s</option>
-    </select>
+    <select id="speed" class="input" style="max-width:120px"><option value="3000">3s</option><option value="5000" selected>5s</option><option value="10000">10s</option><option value="15000">15s</option></select>
+    <button id="shareCard" class="btn copy">Share Card</button>
   </div>
 </div>
 
+<!-- Analyzer Modal -->
+<div id="anModal" class="modalOverlay" style="position:fixed;inset:0;background:rgba(0,0,0,.6);display:none;align-items:center;justify-content:center;z-index:50">
+  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="anTitle" style="width:min(780px,94vw);max-height:80vh;overflow:auto;background:#0b1115;border:1px solid #13212c;border-radius:14px;box-shadow:0 30px 80px rgba(0,0,0,.55)">
+    <header style="display:flex;justify-content:space-between;align-items:center;padding:14px;border-bottom:1px solid #13212c"><h2 id="anTitle" style="margin:0;font-size:16px;color:#9fe6b8">Tweet Analyzer</h2><button id="anClose" class="btn small">✖</button></header>
+    <div class="body" style="padding:12px">
+      <textarea id="anText" placeholder="Paste your tweet here..." style="width:100%;min-height:120px;padding:12px;border-radius:10px;border:1px solid #13212c;background:#07121a;color:#dfe8f4"></textarea>
+      <div style="display:flex;gap:8px;margin-top:8px"><button id="anRun" class="btn gen">Analyze</button><button id="anUse" class="btn copy">Use in generator</button></div>
+      <div id="anResult" style="margin-top:10px;line-height:1.45;color:#cfeaff"></div>
+    </div>
+  </div>
+</div>
+
+<!-- Tweet Verify Modal -->
+<div id="tvModal" style="position:fixed;inset:0;display:none;align-items:center;justify-content:center;background:rgba(0,0,0,.6);z-index:140">
+  <div style="width:min(520px,92vw);background:#0b1115;border:1px solid #13212c;border-radius:14px;padding:16px;box-shadow:0 30px 80px rgba(0,0,0,.55)">
+    <div style="font-weight:800;color:#9fe6b8;margin-bottom:6px">Verify your Tweet</div>
+    <div style="color:#cfeaff;margin-bottom:10px">Paste the public URL of your tweet (e.g. https://x.com/yourname/status/1234567890). Each unique tweet gives +1 XP.</div>
+    <input id="tvInput" placeholder="https://x.com/yourname/status/1234567890" style="width:100%;padding:10px;border-radius:10px;border:1px solid #13212c;background:#07121a;color:#dfe8f4;margin-bottom:10px" />
+    <div id="tvStatus" style="min-height:18px;font-size:12px;color:#8aa1b1;margin-bottom:8px"></div>
+    <div style="display:flex;gap:8px;justify-content:flex-end"><button id="tvCancel" class="btn small">Cancel</button><button id="tvOk" class="btn gen">Verify</button></div>
+  </div>
+</div>
+
+<canvas id="confetti" style="position:fixed;inset:0;pointer-events:none;z-index:5"></canvas>
+<button id="tipMini" class="btn small" style="position:fixed;left:18px;bottom:58px;z-index:6;background:#10321f;border:1px solid #1b5a39;color:#bfffd3;padding:8px 12px;border-radius:10px;box-shadow:0 6px 16px rgba(0,0,0,.35)">💰 Tip</button>
 <div class="brand">Created by @setrixx19</div>
 
 <script>
-// ====== Config ======
-const WALLET_SOL = "77M7waPc3o6uEpwHxnNRzJ9Ga47gnFPZVJKu3AP1mRjv";
+// Utility
+const $=id=>document.getElementById(id);
+function toast(msg){const t=document.createElement('div');t.className='toast';t.textContent=msg;document.body.appendChild(t);requestAnimationFrame(()=>{t.style.opacity='1';t.style.transform='translate(-50%,0)'});setTimeout(()=>{t.style.opacity='0';t.style.transform='translate(-50%,6px)'},1700);setTimeout(()=>t.remove(),2100)}
 
-// ====== Toast ======
-function showToast(msg){
-  const t=document.createElement('div');
-  t.className='toast'; t.textContent=msg;
-  document.body.appendChild(t);
-  requestAnimationFrame(()=>{t.style.opacity='1';t.style.transform='translate(-50%,0)';});
-  setTimeout(()=>{t.style.opacity='0';t.style.transform='translate(-50%,6px)';},1700);
-  setTimeout(()=>t.remove(),2100);
+// Sound (smooth + mute)
+const Sound=(function(){
+  const AC=window.AudioContext||window.webkitAudioContext; let ctx; let muted=(localStorage.getItem('ctf_mute')==='1');
+  function ensure(){ctx=ctx||new AC();return ctx}
+  function updateBtn(){const b=$('muteBtn'); if(b) b.textContent = muted?'🔇 Muted':'🔊 Sound On'}
+  function setMuted(v){muted=!!v; try{localStorage.setItem('ctf_mute',muted?'1':'0')}catch(e){} updateBtn()}
+  function tone({freq=440,type='sine',attack=0.01,hold=0.08,release=0.2,gain=0.04,pan=0}){
+    if(muted) return; const ac=ensure(); const t0=ac.currentTime;
+    const o=ac.createOscillator(); const g=ac.createGain(); o.type=type; o.frequency.setValueAtTime(freq,t0);
+    g.gain.setValueAtTime(0,t0); o.connect(g); g.connect(ac.destination);
+    g.gain.linearRampToValueAtTime(gain,t0+attack); g.gain.setValueAtTime(gain,t0+attack+hold); g.gain.linearRampToValueAtTime(0.0001,t0+attack+hold+release);
+    o.start(t0); o.stop(t0+attack+hold+release+0.03);
+  }
+  function chord(freqs,opts={}){freqs.forEach(f=>tone({freq:f,...opts}))}
+  function event(name){
+    if(muted) return;
+    if(name==='generate') chord([392,494,659],{type:'triangle',attack:0.015,hold:0.09,release:0.24,gain:0.03});
+    else if(name==='tweet') chord([523,659],{type:'sine',attack:0.01,hold:0.08,release:0.35,gain:0.035});
+    else if(name==='copy') tone({freq:780,type:'sine',attack:0.005,hold:0.05,release:0.14,gain:0.03});
+  }
+  return {event,setMuted,isMuted:()=>muted,updateBtn};
+})();
+
+// Theme
+(function(){const root=document.documentElement,btn=$('themeBtn'),KEY='ctf_theme';function apply(theme){root.classList.toggle('theme-neon',theme==='neon');btn.textContent=theme==='neon'?'Theme: Neon':'Theme: Dark';localStorage.setItem(KEY,theme)}const saved=localStorage.getItem(KEY)||'dark';apply(saved);btn.onclick=()=>apply(root.classList.contains('theme-neon')?'dark':'neon')})();
+
+// Confetti
+(function(){const c=$('confetti'),ctx=c.getContext('2d');function resize(){c.width=innerWidth;c.height=innerHeight}addEventListener('resize',resize);resize();function burst(){const parts=[];for(let i=0;i<120;i++){parts.push({x:innerWidth/2,y:innerHeight/2,vx:(Math.random()-0.5)*6,vy:(Math.random()-0.7)*7-2,g:0.12+Math.random()*0.06,s:2+Math.random()*3,a:1,col:`hsl(${Math.floor(120+Math.random()*120)},100%,70%)`})}let t=0;(function frame(){ctx.clearRect(0,0,c.width,c.height);parts.forEach(p=>{p.x+=p.vx;p.y+=p.vy;p.vy+=p.g;p.a-=0.008;ctx.globalAlpha=Math.max(p.a,0);ctx.fillStyle=p.col;ctx.fillRect(p.x,p.y,p.s,p.s)});t++;if(t<200)requestAnimationFrame(frame);else ctx.clearRect(0,0,c.width,c.height)})()}window.__confettiBurst=burst})();
+
+// Generator data
+function bag(arr){let a=arr.slice();function sh(x){for(let i=x.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[x[i],x[j]]=[x[j],x[i]]}}sh(a);return{next(){if(a.length===0){a=arr.slice();sh(a)}return a.pop()}}}
+const banks={intros:["Honestly","Some days","Not gonna lie","Lately","Apparently","Real talk","Hot take","Confession","For real","Quick thought","Hear me out","Plot twist","Low key","Side note","Fun fact","Between us","Let’s be honest","Wild thought","No joke","Heads up"],qualifiers:["kinda","sorta","a bit","low key","high key","dead serious","no lie","for real though","apparently","not even kidding"],subjects:["the market","crypto","this coin","my portfolio","the charts","on chain chaos","my trades","my patience","these bags","gas fees","liquidity","volatility","whales","retail","trend reversals","sideways action","my cold wallet","my hot wallet","my pnl","funding rates","open interest","sentiment","macro vibes","exit liquidity","alerts","leverage","DCA plans","weird spikes","bear traps","bull traps"],verbs:["keeps testing me","just wants chaos","never lets me rest","makes zero sense","is playing games","refuses to behave","does its own thing","spikes then dips","dumps then winks","trolls everyone","changes direction mid sip","fakes a breakout","fakes a breakdown","pretends to be rational","gaslights my strategy","ignores support and resistance","speedruns emotions","pings me at 3am"],reactions:["and I’m still here watching","and I pretend I understand","and I cannot even be mad","and somehow it is funny now","but I live for this","so I keep acting like it is the plan","and I am taking it personally","and I still set alerts","and I keep refreshing like it helps","so I put the phone face down","and I call it growth","and I promise I learned"],additives:["Coffee is doing the heavy lifting","Every dip feels like lore unlock","Green candles owe me an apology","Phone battery fears price alerts","Maybe the real bull run was patience","I blinked and missed three moves","Charts are roasting me politely","Probability said no and I said what if","My spreadsheet is judging me","I am narrating candles like a documentary","Touching grass soon promise","I muted notifications and caught FOMO"],micro:["I am coping in 4K","No lessons learned","We pretend it is strategy","This is fine","It is a lifestyle now","Timers do not help but I keep them","Maybe tomorrow behaves","I cannot look away","We all chose chaos","What a skill issue","I read five threads and got dumber"],fillers:[" and "," but "," so "," then "," yet "," still "," somehow "," anyway "],emojiSoft:["🙂","😅","🤝","🫠","📉","📈","🧠","🪙","📊"]};
+const bagIntro=bag(banks.intros),bagQual=bag(banks.qualifiers),bagSub=bag(banks.subjects),bagVerb=bag(banks.verbs),bagReact=bag(banks.reactions),bagAdd=bag(banks.additives);
+const rnd=a=>a[Math.floor(Math.random()*a.length)],clamp=(s,m)=>s.length>m?s.slice(0,m-1)+'…':s;const lastSub=[],lastAdd=[];const CD=6;
+function pickWithCooldown(next,hist){let a=0,v=next();while(hist.includes(v)&&a<10){v=next();a++}hist.push(v);if(hist.length>CD)hist.shift();return v}function maybeOneEmoji(){return Math.random()<0.22?" "+rnd(banks.emojiSoft):""}function filler(){return rnd(banks.fillers)}
+let hookBoost=false;
+function baseSentence(hookProb){
+  if(hookBoost)hookProb=Math.min(0.9,hookProb+0.35);
+  const intro=bagIntro.next()+(Math.random()<0.35?" "+bagQual.next():"");
+  const subj=pickWithCooldown(()=>bagSub.next(),lastSub);
+  const line=`${intro} ${subj} ${bagVerb.next()}${filler()}${bagReact.next()}`+(Math.random()<0.5?" "+pickWithCooldown(()=>bagAdd.next(),lastAdd):"");
+  const maybeHook=Math.random()<hookProb?rnd(["Breaking:","Note to self:","Hear me out:","Wild thought:","Update:","Plot twist:"])+" ":"";
+  return(maybeHook+line+maybeOneEmoji()).trim()
 }
+function injectKeyword(s,kw){kw=(kw||"").trim();if(!kw)return s;if(Math.random()<0.55){return s.replace(/(this coin|crypto|the market|these bags|the charts|liquidity|volatility)/,m=>m+" "+kw)}return s+" "+kw}
+function expandToRange(s,min,max){while(s.length<min){s+=Math.random()<0.5?filler()+rnd(banks.micro):" "+rnd(banks.additives);if(s.length>max+20)break}return s.length>max?clamp(s,max):s}
+function sentence(len,hookProb=0.4,drift=0){let s=injectKeyword(baseSentence(hookProb),$('search').value);if(len==="long"){const baseTarget=200+Math.floor(Math.random()*51);const target=Math.max(200,Math.min(250,baseTarget+Math.floor(drift)));s=expandToRange(s,target,250);return s}else{return clamp(s,150)}}
 
-// ====== Wallet Copy ======
-document.getElementById("tipWallet").addEventListener("click", async ()=>{
-  try{await navigator.clipboard.writeText(WALLET_SOL);}catch(e){}
-  showToast("Wallet copied ✅");
+// Viral score & UI
+function viralScore(text){let score=50,len=text.length;const hasHook=/^(breaking:|note to self:|hear me out:|wild thought:|update:|plot twist:)/i.test(text);const emojis=(text.match(/[\u{1F300}-\u{1FAFF}]/gu)||[]).length;if(len>=110&&len<=180)score+=18;else if(len>=80&&len<110)score+=10;else if(len>180&&len<=250)score+=6;else score-=6;if(hasHook)score+=12;else score-=2;if(emojis===1)score+=8;if(emojis>=2)score-=4;return Math.max(0,Math.min(100,Math.round(score)))}
+function scoreTips(s){if(s<40)return"Tip: add a short hook and one emoji.";if(s<60)return"Tip: tighten length (110–180) and add one emoji.";if(s<80)return"Nice! Try a sharper hook or one punctuation hit.";return"🔥 Looks viral. Ship it."}
+function updateViralUI(){const el=$('tweet-box'),vwrap=$('vwrap'),vfill=$('vfill'),vnum=$('vnum'),vtips=$('vtips');const text=el.textContent.trim();if(!text){vwrap.style.display='none';vtips.style.display='none';$('vquote').style.display='none';return}const s=viralScore(text);vwrap.style.display='flex';vtips.style.display='block';vfill.style.width=s+'%';vnum.textContent=s;vtips.textContent=scoreTips(s);const quotesLow=["Every red candle writes a better story tomorrow.","Patience is a position too.","The dip is loud, the plan is quiet."],quotesMid=["Less noise, more signal.","Stay curious, stay kind, stay liquid.","Edge grows where comfort ends."],quotesHigh=["This one might fly—ship it.","Small wins compound into big ones.","Momentum loves confidence."];function pickQ(sc){if(sc<40)return quotesLow[Math.floor(Math.random()*quotesLow.length)];if(sc<70)return quotesMid[Math.floor(Math.random()*quotesMid.length)];return quotesHigh[Math.floor(Math.random()*quotesHigh.length)]}const qEl=$('vquote');qEl.style.display='block';qEl.textContent='“'+pickQ(s)+'”'}
+function glowReaction(){const box=$('tweet-box');const score=viralScore(box.textContent||"");let hue=score>80?140:score>60?120:score>40?40:0;box.style.boxShadow=`0 0 0 2px hsla(${hue},90%,55%,.28), 0 0 34px hsla(${hue},90%,60%,.5), inset 0 0 20px hsla(${hue},90%,60%,.18)`;setTimeout(()=>{box.style.boxShadow='';updateViralUI()},320)}
+
+// Rank
+(function(){const KEY='ctf_rank_xp_v2';const TIERS=[{name:'Bronze I',emoji:'🥉',at:0},{name:'Bronze II',emoji:'🥉',at:5},{name:'Bronze III',emoji:'🥉',at:10},{name:'Silver I',emoji:'🥈',at:15},{name:'Silver II',emoji:'🥈',at:25},{name:'Gold I',emoji:'🥇',at:40},{name:'Gold II',emoji:'🥇',at:60},{name:'Platinum',emoji:'💠',at:85},{name:'Diamond',emoji:'💎',at:120},{name:'Mythic',emoji:'🔥',at:180},{name:'Legend',emoji:'🐉',at:240},{name:'Eternal',emoji:'👑',at:320}];const badge=$('rankBadgeBig'),title=$('rankTitle'),xpText=$('rankXPText'),fill=$('rankFill'),nextText=$('rankNext'),dbg=$('rankDbg');function getXP(){try{return parseInt(localStorage.getItem(KEY)||'0',10)||0}catch{return 0}}function setXP(x){localStorage.setItem(KEY,String(Math.max(0,x|0)))}function findTier(xp){let idx=0;for(let i=0;i<TIERS.length;i++){if(xp>=TIERS[i].at)idx=i;else break}return{idx,t:TIERS[idx],next:TIERS[idx+1]||null}}function render(){const xp=getXP();const {t,next}=findTier(xp);badge.textContent=t.emoji;title.textContent=t.name;const base=t.at,top=next?next.at:(t.at+50);const pct=Math.max(0,Math.min(100,Math.round(((xp-base)/Math.max(1,(top-base)))*100)));fill.style.width=pct+'%';xpText.textContent=`${xp} / ${top} XP`;nextText.textContent=next?`Next: ${next.name} at ${next.at} XP`:`Max tier reached — keep flexing 🚀`;dbg.textContent=`tier=${t.name}, base=${base}, next=${next?next.name:'—'}, xp=${xp}`}window.__rank={getXP,setXP,render};$('resetRank').onclick=()=>{if(confirm('Reset your local Tweet Rank XP?')){setXP(0);render();toast('Rank reset ✅')}};$('exportRank').onclick=()=>{const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([String(getXP())],{type:'text/plain'}));a.download='tweet_rank_xp.txt';document.body.appendChild(a);a.click();a.remove()};$('importRank').onclick=()=>{const i=document.createElement('input');i.type='file';i.accept='text/plain';i.onchange=e=>{const f=e.target.files[0];if(!f)return;const r=new FileReader();r.onload=()=>{const v=parseInt(r.result||'0',10)||0;setXP(Math.max(0,v));render();toast('Rank imported ✅')};r.readAsText(f)};i.click()};render()})();
+
+// Auto-mode
+let tweetHistory=[],currentTweet="",auto=false,autoTimer=null,nextDeadline=0,INTERVAL=5000;
+function setAutoUI(on){const b=$('auto');b.textContent=on?"Auto Mode : ON":"Auto Mode : OFF";b.classList.toggle('boost',on)}
+function schedule(){if(!auto)return;nextDeadline=Date.now()+INTERVAL;clearTimeout(autoTimer);autoTimer=setTimeout(()=>{doGenerate(false);schedule()},INTERVAL)}
+function tick(){const cd=$('countdown');if(!auto){cd.textContent="";return}const ms=Math.max(0,nextDeadline-Date.now());cd.textContent="Next tweet in: "+Math.ceil(ms/1000)+" s"}setInterval(tick,100)
+function toggleAuto(){auto=!auto;setAutoUI(auto);if(auto){schedule()}else{clearTimeout(autoTimer);autoTimer=null}}
+function nextRandomizer(){return{hookProb:0.25+Math.random()*0.5,drift:(Math.random()-0.5)*10}}let randCfg=nextRandomizer();
+
+// Core actions
+function doGenerate(showFx=true){if(currentTweet)tweetHistory.push(currentTweet);currentTweet=sentence($('length').value,randCfg.hookProb,randCfg.drift);$('tweet-box').textContent=currentTweet;updateViralUI();if(showFx){window.__confettiBurst();Sound.event('generate');glowReaction()}randCfg=nextRandomizer()}
+function downloadCard(){const t=($('tweet-box').textContent||'').trim();if(!t){toast('Generate a tweet first');return}const score=viralScore(t);const canvas=document.createElement('canvas');const W=1200,H=628;canvas.width=W;canvas.height=H;const ctx=canvas.getContext('2d');const g1=ctx.createLinearGradient(0,0,W,H);g1.addColorStop(0,'#0b1115');g1.addColorStop(1,'#081019');ctx.fillStyle=g1;ctx.fillRect(0,0,W,H);ctx.strokeStyle='rgba(96,170,255,0.55)';ctx.lineWidth=8;ctx.strokeRect(12,12,W-24,H-24);ctx.fillStyle='rgba(255,255,255,0.03)';ctx.fillRect(32,32,W-64,H-64);ctx.fillStyle='#4ade80';ctx.font='700 34px Inter, system-ui, Arial';ctx.fillText('Crypto Tweet Factory',48,72);ctx.textAlign='right';ctx.font='700 22px Inter, system-ui, Arial';ctx.fillStyle='#4ade80';ctx.fillText('@setrixx19',W-48,H-40);ctx.textAlign='left';const chipX=W-260,chipY=52,chipW=180,chipH=44;ctx.fillStyle='rgba(96,170,255,0.18)';ctx.strokeStyle='rgba(96,170,255,0.6)';ctx.lineWidth=2;ctx.beginPath();if(ctx.roundRect){ctx.roundRect(chipX,chipY,chipW,chipH,12)}else{ctx.rect(chipX,chipY,chipW,chipH)}ctx.fill();ctx.stroke();ctx.fillStyle='#cfeaff';ctx.font='700 22px Inter, system-ui, Arial';ctx.fillText('Viral Score: '+score,chipX+16,chipY+28);const PX_LEFT=64,PX_TOP=120,PX_RIGHT=W-64,PX_BOTTOM=H-96;const MAX_W=PX_RIGHT-PX_LEFT,MAX_H=PX_BOTTOM-PX_TOP;let fontSize=44;ctx.fillStyle='#e6eef8';ctx.font=`600 ${fontSize}px Inter, system-ui, Arial`;function wrap(text){const words=text.split(' ');let lines=[''],i=0;for(const w of words){const test=lines[i]+(lines[i]?' ':'')+w;if(ctx.measureText(test).width<=MAX_W){lines[i]=test}else{lines.push(w);i++}}return lines}let lines=wrap(t);let lh=Math.round(fontSize*1.18);while((lines.length*lh)>MAX_H&&fontSize>18){fontSize-=2;ctx.font=`600 ${fontSize}px Inter, system-ui, Arial`;lh=Math.round(fontSize*1.18);lines=wrap(t)}const blockH=lines.length*lh;let y=PX_TOP+Math.max(0,(MAX_H-blockH)/2)+lh-Math.round(fontSize*0.18);for(const line of lines){ctx.fillText(line,PX_LEFT,y);y+=lh}const a=document.createElement('a');a.href=canvas.toDataURL('image/png');a.download='tweet_card.png';document.body.appendChild(a);a.click();a.remove()}
+
+// Verify modal (+1 XP per unique tweet URL)
+(function(){const KEY='ctf_verified_tweets_v1';function getSeen(){try{return new Set(JSON.parse(localStorage.getItem(KEY)||'[]'))}catch(e){return new Set()}}function saveSeen(s){try{localStorage.setItem(KEY,JSON.stringify([...s]))}catch(e){}}
+const seen=getSeen();const modal=$('tvModal'),ok=$('tvOk'),cancel=$('tvCancel'),input=$('tvInput'),status=$('tvStatus');function close(){modal.style.display='none';status.textContent='';input.value=''}cancel.onclick=close;ok.onclick=function(){const url=(input.value||'').trim();const re=/^(https?:\/\/)?(x\.com|twitter\.com)\/[^\/]+\/status\/(\d+)/i;const m=url.match(re);if(!m){status.style.color='#ffb3b3';status.textContent='Invalid URL. Use https://x.com/yourname/status/1234567890';return}const id=m[3];if(seen.has(id)){status.style.color='#ffdf99';status.textContent='Already counted for XP.';return}seen.add(id);saveSeen(seen);toast('Tweet verified ✅ +1 XP');try{if(window.__rank){const cur=window.__rank.getXP();window.__rank.setXP(cur+1);window.__rank.render()}}catch(e){}close()}})();
+
+// Bind all buttons safely after DOM is ready
+document.addEventListener('DOMContentLoaded', function(){
+  Sound.updateBtn();
+  $('muteBtn').addEventListener('click', ()=> Sound.setMuted(!Sound.isMuted()));
+  const hookBtn=$('hookToggle'); hookBtn.addEventListener('click', ()=>{hookBoost=!hookBoost; hookBtn.classList.toggle('active',hookBoost); hookBtn.textContent=hookBoost?'🔥 Hook Boost ON':'🔥 Hook Boost OFF'});
+  $('generate2').addEventListener('click', ()=>{doGenerate(true)});
+  $('tweet').addEventListener('click', ()=>{
+    const t=($('tweet-box').textContent||'').trim();
+    if(!t){toast('Generate a tweet first');return}
+    window.open("https://twitter.com/intent/tweet?text="+encodeURIComponent(t),"_blank");
+    Sound.event('tweet'); glowReaction();
+    setTimeout(()=>{$('tvModal').style.display='flex'},1000);
+  });
+  $('copy').addEventListener('click', async ()=>{
+    const t=($('tweet-box').textContent||'').trim();
+    if(!t){toast('Generate a tweet first');return}
+    await navigator.clipboard.writeText(t);
+    toast('Copied ✅'); Sound.event('copy'); glowReaction();
+  });
+  $('back').addEventListener('click', ()=>{
+    if(!tweetHistory.length)return; currentTweet=tweetHistory.pop(); $('tweet-box').textContent=currentTweet; updateViralUI();
+  });
+  $('auto').addEventListener('click', ()=> toggleAuto());
+  $('speed').addEventListener('change', e=>{INTERVAL=parseInt(e.target.value,10)||5000; if(auto){schedule()}});
+
+  // Sidebar toggle
+  (function(){const side=$('leftSidebar'),handle=$('sideHandle'),btn=$('toggleSidebar'),KEY='ctf_sidebar_open_rank';function apply(open){side.setAttribute('data-open',open?'true':'false');localStorage.setItem(KEY,open?'1':'0'); if(btn) btn.textContent=open?'◀':'➤'} apply(localStorage.getItem(KEY)!=='0'); if(btn){btn.onclick=()=>apply(side.getAttribute('data-open')!=='true')} if(handle){handle.onclick=()=>apply(side.getAttribute('data-open')!=='true')}})();
+
+  // Analyzer modal
+  const anModal=$('anModal'); $('analyzeBtn').onclick=()=>{anModal.style.display='flex';$('anText').focus()}; $('anClose').onclick=()=>{anModal.style.display='none'};
+  $('anRun').onclick=()=>{const t=($('anText').value||'').trim(); if(!t){$('anResult').textContent='Paste something first.';return} const s=viralScore(t),len=t.length,emojis=(t.match(/[\u{1F300}-\u{1FAFF}]/gu)||[]).length,hasHook=/^(breaking:|note to self:|hear me out:|wild thought:|update:|plot twist:)/i.test(t); $('anResult').innerHTML=`<div><strong>Score:</strong> ${s}</div><div><strong>Length:</strong> ${len}</div><div><strong>Emojis:</strong> ${emojis}</div><div><strong>Hook:</strong> ${hasHook?'yes':'no'}</div><div style="margin-top:8px;color:#9ec1ff">${scoreTips(s)}</div>`};
+  $('anUse').onclick=()=>{const t=($('anText').value||'').trim(); if(!t)return; $('tweet-box').textContent=t; updateViralUI(); anModal.style.display='none'};
+
+  // Share card
+  $('shareCard').addEventListener('click', downloadCard);
+
+  // Tip (Solana 0.1 deep link)
+  const WALLET_SOL="77M7waPc3o6uEpwHxnNRzJ9Ga47gnFPZVJKu3AP1mRjv";
+  function buildSolPay(amount,label="Crypto Tweet Factory",message="Thanks for the tip!"){const p=new URLSearchParams({amount,label,message});return `solana:${WALLET_SOL}?${p.toString()}`}
+  $('tipMini').onclick=()=>{const amt=0.1; try{navigator.clipboard.writeText(WALLET_SOL)}catch(e){} toast(`Thanks for your tip of ${amt} SOL 💚`); window.__confettiBurst&&window.__confettiBurst(); const uri=buildSolPay(amt); try{const w=window.open(uri); if(!w) location.href=uri;}catch(e){location.href=uri} };
+
+  // Init UI
+  doGenerate(false);
+  setAutoUI(false);
 });
-
-// ====== High-Variety Tweet Generator ======
-// Bigger word banks + multiple templates + optional spice + random punctuation/emojis.
-// Also performs exact-duplicate avoidance within the session.
-const bank = {
-  intros: ["Honestly","Some days","Not gonna lie","Lately","Tell me why","Apparently","Low-key","Somehow","Real talk","Hot take","Confession","No shade","Tbh","For real","Plot twist"],
-  qualifiers:["kinda","sorta","a bit","low-key","high-key","dead serious","for reasons unknown","not even joking","no lie","apparently"],
-  subjects: [
-    "the market","crypto","this coin","my portfolio","the charts","on-chain chaos","my trades","my patience",
-    "these bags","my screen time","the candles","my limit orders","risk management","the timeline","the whales"
-  ],
-  verbs:[
-    "keeps testing me","just wants chaos","never lets me rest","makes zero sense","is playing games",
-    "won’t calm down","acts personal","refuses to behave","does its own thing","is on hard mode",
-    "spikes then dips","dumps then winks","speedruns my emotions","pretends to be rational","trolls everyone"
-  ],
-  reactions:[
-    "and I’m still here watching.","and I pretend I understand.","and I can’t even be mad.","and somehow it’s funny now.",
-    "but deep down I live for this.","so I keep acting like it’s the plan.","and I’m taking it personally.",
-    "and I call it ‘character growth’.","and I still set alerts.","and I keep refreshing like it helps."
-  ],
-  additives:[
-    "Coffee doing the heavy lifting today.","Every dip feels like lore unlock.","Green candles owe me an apology.",
-    "Phone battery fears price alerts.","My screen time is mostly coping.","Maybe the real bull run was patience.",
-    "Liquidity vanished faster than my plans.","I blinked and missed three moves.","Charts are roasting me politely."
-  ],
-  connectors:["—","–","…",";",","," | "],
-  emojiSoft:["🙂","😅","🤝","🤷‍♂️","🤷‍♀️","🫠","📉","📈","💤","🧃","🧠","🪙"],
-  emojiSpicy:["🔥","💀","🚀","🧨","🫡","🌀","⚡","🎯","🛠️","🥲"],
-  enders:["","", "", " Right?"," Be honest."," Tell me I’m not alone."," Don’t @ me."," It’s fine."," Probably."," Maybe."],
-  styles:["alllower","none"]
-};
-
-// Simple helpers
-const rnd = a => a[Math.floor(Math.random()*a.length)];
-function clamp(s,m){return s.length>m?s.slice(0,m-1)+'…':s;}
-
-// Random optional bits
-function maybe(prob){ return Math.random() < prob; }
-function capFirst(s){ return s.charAt(0).toUpperCase() + s.slice(1); }
-function injectKeyword(base, kw){
-  kw = (kw||"").trim();
-  if(!kw) return base;
-  // sprinkle keyword once in subject or as tag
-  if(maybe(0.5)){
-    return base.replace(/(this coin|crypto|the market|these bags|the charts)/, m => `${m} ${kw}`);
-  } else {
-    const sep = rnd([" "," "," "," — "," – "," · "]);
-    return base + sep + kw;
-  }
-}
-
-// Multiple templates
-function templateA(){ // Intro + subject + verb + reaction
-  const intro = rnd(bank.intros);
-  const qual = maybe(0.35) ? " " + rnd(bank.qualifiers) : "";
-  const subj = rnd(bank.subjects);
-  const verb = rnd(bank.verbs);
-  const react= rnd(bank.reactions);
-  const conn = rnd(bank.connectors);
-  const soft = maybe(0.35) ? " " + rnd(bank.emojiSoft) : "";
-  const spicy= maybe(0.2)  ? " " + rnd(bank.emojiSpicy) : "";
-  const end  = rnd(bank.enders);
-  return `${intro}${qual} ${subj} ${verb}${conn} ${react}${soft}${spicy}${end}`;
-}
-function templateB(){ // Statement + parenthetical + additive
-  const subj = capFirst(rnd(bank.subjects));
-  const verb = rnd(bank.verbs);
-  const add  = rnd(bank.additives);
-  const soft = maybe(0.35) ? " " + rnd(bank.emojiSoft) : "";
-  return `${subj} ${verb}. (${add})${soft}`;
-}
-function templateC(){ // Rhetorical
-  const intro = rnd(["Tell me why","Is it just me or","Does anyone else feel like","Be honest,"]);
-  const subj = rnd(bank.subjects);
-  const verb = rnd(bank.verbs).replace(/^\w+ /,""); // small variety
-  const soft = maybe(0.35) ? " " + rnd(bank.emojiSoft) : "";
-  return `${intro} ${subj} ${verb}?${soft}`;
-}
-function templateD(){ // Short punchy
-  const subj = capFirst(rnd(bank.subjects));
-  const soft = maybe(0.25) ? " " + rnd(bank.emojiSoft) : "";
-  const spicy= maybe(0.15) ? " " + rnd(bank.emojiSpicy) : "";
-  return `${subj}. ${capFirst(rnd(bank.additives))}${soft}${spicy}`;
-}
-
-const templates = [templateA, templateB, templateC, templateD];
-
-// Style pass (occasionally lowercase casual style)
-function stylePass(s){
-  if(rnd(bank.styles) === "alllower" && s.length < 200){
-    return s.toLowerCase().replace(/^./, c => c); // keep fully lower
-  }
-  return s;
-}
-
-// Build sentence with strong randomness + len control
-function buildSentence(keyword, len){
-  let s = rnd(templates)();
-  s = injectKeyword(s, keyword);
-  s = stylePass(s);
-  const limit = (len==="short") ? 150 : 250;
-  return clamp(s, limit);
-}
-
-// Session memory to avoid exact duplicates
-const seen = new Set();
-function uniqueSentence(keyword,len){
-  let tries = 0, s = "";
-  do{
-    s = buildSentence(keyword,len);
-    tries++;
-    if(tries>80){break;}
-  }while(seen.has(s));
-  seen.add(s);
-  return s;
-}
-
-let history=[],current="",autoTimer=null,INTERVAL=5000,countTimer=null;
-const tweetBox=document.getElementById("tweet-box"),
-      searchEl=document.getElementById("search"),
-      lenEl=document.getElementById("length"),
-      countdown=document.getElementById("countdown"),
-      placeholderEl = document.querySelector('.placeholder');
-
-function generate(){
-  if(current)history.push(current);
-  current=uniqueSentence(searchEl.value,lenEl.value);
-  tweetBox.textContent=current;
-  if(placeholderEl) placeholderEl.style.display='none';
-  resetCountdown();
-}
-function back(){
-  if(!history.length)return;
-  current=history.pop();
-  tweetBox.textContent=current;
-  resetCountdown();
-}
-function setAuto(on){
-  const autoBtn=document.getElementById("auto");
-  if(on){if(autoTimer)return;autoTimer=setInterval(generate,INTERVAL);autoBtn.textContent="Auto Mode : ON";}
-  else{clearInterval(autoTimer);autoTimer=null;autoBtn.textContent="Auto Mode : OFF";}
-  resetCountdown();
-}
-function resetCountdown(){
-  clearInterval(countTimer);
-  if(!autoTimer){countdown.textContent="";return;}
-  let sec=Math.ceil(INTERVAL/1000);
-  countdown.textContent="Next tweet in: "+sec+" s";
-  countTimer=setInterval(()=>{sec--;countdown.textContent="Next tweet in: "+sec+" s";if(sec<=0){clearInterval(countTimer);countdown.textContent="Generating…";}},1000);
-}
-
-document.getElementById("generate").onclick=generate;
-document.getElementById("back").onclick=back;
-document.getElementById("tweet").onclick=()=>{
-  if(!current) return showToast("Generate a tweet first");
-  window.open("https://twitter.com/intent/tweet?text="+encodeURIComponent(current),"_blank");
-};
-document.getElementById("copy").onclick=async()=>{
-  if(!current) return showToast("Generate a tweet first");
-  await navigator.clipboard.writeText(current);
-  showToast("Copied ✅");
-};
-document.getElementById("auto").onclick=()=>setAuto(!autoTimer);
-document.getElementById("speed").onchange=e=>{INTERVAL=parseInt(e.target.value)||5000;if(autoTimer){setAuto(false);setAuto(true);}};
-
-// No auto-generate on load
 </script>
+<div class="brand">Created by @setrixx19</div>
 </body>
 </html>
+
