@@ -8,7 +8,6 @@
 :root{
   --bg:#050708;--panel:#0b1115;--line:#13212c;
   --muted:#8aa1b1;--neon:#4ade80;--blue:#60aaff;
-  --tooltip-bg:#0f1a12;--tooltip-border:#1d2d23;
 }
 *{box-sizing:border-box}
 body{
@@ -25,21 +24,15 @@ body{
 header{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}
 h1{margin:0;font-size:20px;color:var(--neon)}
 .right{display:flex;gap:8px;align-items:center}
-
-/* Tip button */
-.tipWrap{position:relative;display:inline-block}
 .tipBtn{
   background:var(--neon);color:#001c09;font-weight:800;border:none;border-radius:10px;
   padding:8px 14px;cursor:pointer;transition:transform .15s ease,opacity .15s ease;
 }
 .tipBtn:hover{transform:scale(1.05);opacity:.92}
-
-/* Buttons */
 .btn{border:none;border-radius:10px;padding:10px 16px;font-weight:800;cursor:pointer;font-size:15px}
 .btn.gen{background:var(--neon);color:#001c09}
 .btn.tweet{background:var(--blue);color:#001426}
 .btn.copy,.btn.back,.btn.toggle{background:transparent;border:1px solid var(--line);color:#cfeaff}
-
 #tweet-box{
   background:var(--panel);border:1px solid var(--line);
   border-radius:12px;padding:24px;margin:12px 0;text-align:center;
@@ -48,15 +41,11 @@ h1{margin:0;font-size:20px;color:var(--neon)}
 }
 .actions{display:flex;gap:8px;flex-wrap:wrap;justify-content:center;margin-top:8px}
 .countdown{margin-top:6px;text-align:center;color:#9ec1ff;font-size:13px;min-height:18px}
-
-/* Input bar */
 .topbar{display:flex;gap:8px;flex-wrap:wrap;margin:10px 0}
 .input{flex:1 1 360px;background:#0d151c;color:#dfe8f4;border:1px solid #0f1820;
   padding:10px 12px;border-radius:12px;outline:none}
 select{background:#0b141b;color:#dfe8f4;border:1px solid #13212c;
   padding:8px 10px;border-radius:10px;font-weight:700}
-
-/* Toast */
 .toast{
   position:fixed;bottom:28px;left:50%;transform:translateX(-50%);
   background:#0e1b13;border:1px solid #1b3927;padding:10px 20px;
@@ -71,9 +60,7 @@ select{background:#0b141b;color:#dfe8f4;border:1px solid #13212c;
   <header>
     <h1>Crypto Tweet Factory</h1>
     <div class="right">
-      <div class="tipWrap">
-        <button id="tipBtn" class="tipBtn">💰 Tip SOL</button>
-      </div>
+      <button id="tipBtn" class="tipBtn">💰 Tip 0.1 SOL</button>
     </div>
   </header>
 
@@ -109,24 +96,76 @@ select{background:#0b141b;color:#dfe8f4;border:1px solid #13212c;
   </div>
 </div>
 
+<!-- web3.js für Phantom -->
+<script src="https://unpkg.com/@solana/web3.js@1.95.3/lib/index.iife.min.js"></script>
+
 <script>
+// ====== Phantom Tip (echtes Popup & manuelle Bestätigung) ======
 const WALLET_SOL = "77M7waPc3o6uEpwHxnNRzJ9Ga47gnFPZVJKu3AP1mRjv";
+const TIP_AMOUNT_SOL = 0.1;
 
 function showToast(msg){
-  const t=document.createElement('div');
-  t.className='toast'; t.textContent=msg;
+  const t=document.createElement('div'); t.className='toast'; t.textContent=msg;
   document.body.appendChild(t);
   requestAnimationFrame(()=>{t.style.opacity='1';t.style.transform='translate(-50%,0)';});
   setTimeout(()=>{t.style.opacity='0';t.style.transform='translate(-50%,6px)';},1800);
   setTimeout(()=>t.remove(),2200);
 }
 
+async function openPhantomAndSend(amountSol){
+  const provider = window.solana || (window.phantom && window.phantom.solana);
+  if(!provider || !provider.isPhantom){
+    showToast("Phantom not found — install the extension.");
+    window.open("https://phantom.app/", "_blank");
+    return;
+  }
+  try {
+    // Connect (öffnet Phantom falls nötig)
+    const { publicKey } = await provider.connect({ onlyIfTrusted:false });
+
+    // Mainnet Verbindung
+    const conn = new solanaWeb3.Connection("https://api.mainnet-beta.solana.com", "confirmed");
+    const fromPubkey = publicKey;
+    const toPubkey   = new solanaWeb3.PublicKey(WALLET_SOL);
+    const lamports   = Math.floor(amountSol * solanaWeb3.LAMPORTS_PER_SOL);
+
+    const { blockhash, lastValidBlockHeight } = await conn.getLatestBlockhash();
+
+    const tx = new solanaWeb3.Transaction({
+      feePayer: fromPubkey,
+      recentBlockhash: blockhash
+    }).add(
+      solanaWeb3.SystemProgram.transfer({
+        fromPubkey, toPubkey, lamports
+      })
+    );
+
+    // Über Phantom signieren & senden (Popup)
+    let signature;
+    if (provider.signAndSendTransaction) {
+      const res = await provider.signAndSendTransaction(tx);
+      signature = res.signature || res;
+    } else {
+      const signed = await provider.signTransaction(tx);
+      signature = await conn.sendRawTransaction(signed.serialize());
+    }
+
+    showToast("Submitted 🟢");
+    try { await conn.confirmTransaction({ signature, blockhash, lastValidBlockHeight }, "confirmed"); } catch {}
+    setTimeout(()=> window.open(`https://solscan.io/tx/${signature}`,"_blank"), 400);
+
+  } catch (err) {
+    console.error(err);
+    showToast("Cancelled or failed ❌");
+  }
+}
+
 document.getElementById("tipBtn").addEventListener("click", async ()=>{
   try{ await navigator.clipboard.writeText(WALLET_SOL); showToast("Address copied ✅"); }catch(e){}
-  const deeplink = `solana:${WALLET_SOL}?amount=${encodeURIComponent(0.1)}&label=${encodeURIComponent("Crypto Tweet Factory")}&message=${encodeURIComponent("Thanks for your support!")}`;
-  try { window.location.href = deeplink; } catch(e) { window.open(deeplink, "_blank"); }
+  openPhantomAndSend(TIP_AMOUNT_SOL);
 });
 
+// ====== Tweet Generator (wie gehabt) ======
 const intros=["Honestly","Some days","Not gonna lie","Lately","Tell me why","Apparently","It's wild that","Sometimes I feel like","Just realized","You ever notice"];
 const subjects=["the market","crypto","this coin","my portfolio","the charts","everything on-chain","my trades","my patience","these bags","my screen time"];
 const actions=["keeps testing me","just wants chaos","never lets me rest","makes zero sense","is playing games","won’t calm down","acts like it’s personal","keeps reminding me I know nothing","is allergic to stability","has its own mood swings"];
@@ -154,8 +193,9 @@ function generate(){
 }
 function back(){if(!history.length)return;current=history.pop();tweetBox.textContent=current;resetCountdown();}
 function setAuto(on){
-  if(on){if(autoTimer)return;autoTimer=setInterval(generate,INTERVAL);document.getElementById("auto").textContent="Auto Mode : ON";}
-  else{clearInterval(autoTimer);autoTimer=null;document.getElementById("auto").textContent="Auto Mode : OFF";}
+  const autoBtn=document.getElementById("auto");
+  if(on){if(autoTimer)return;autoTimer=setInterval(generate,INTERVAL);autoBtn.textContent="Auto Mode : ON";}
+  else{clearInterval(autoTimer);autoTimer=null;autoBtn.textContent="Auto Mode : OFF";}
   resetCountdown();
 }
 function resetCountdown(){
