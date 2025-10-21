@@ -1,3 +1,4 @@
+
 <!doctype html>
 <html lang="de">
 <head>
@@ -85,14 +86,6 @@ select{background:#0b141b;color:#dfe8f4;border:1px solid #13212c;
 .modal .clear{background:transparent;border:1px solid #243748;color:#cfeaff;border-radius:10px;padding:8px 12px;cursor:pointer}
 .modal .close{background:#4ade80;color:#001c09;border:none;border-radius:10px;padding:8px 14px;font-weight:800;cursor:pointer}
 .empty{color:#8aa1b1;background:#0e151a;border:1px dashed #223342;border-radius:10px;padding:14px;text-align:center}
-
-/* wallet list inside upgrade modal */
-.walletRow{display:flex;gap:10px;align-items:center;padding:10px;border-radius:10px;background:#081016;border:1px solid #12313b;margin-bottom:8px}
-.walletRow .info{flex:1}
-.walletRow .actions{display:flex;gap:8px}
-
-/* premium notice */
-.pNotice{background:#07170f;border:1px solid #183424;color:#9ff3c1;padding:10px;border-radius:10px;margin-bottom:10px;text-align:center}
 </style>
 </head>
 <body>
@@ -184,7 +177,7 @@ select{background:#0b141b;color:#dfe8f4;border:1px solid #13212c;
           </div>
         </div>
 
-        <!-- Trust Wallet (Note: Trust is EVM and may not support SOL natively) -->
+        <!-- Trust Wallet (EVM) -->
         <div class="walletRow">
           <div class="info">
             <strong>Trust Wallet (EVM)</strong>
@@ -228,7 +221,7 @@ select{background:#0b141b;color:#dfe8f4;border:1px solid #13212c;
 <script>
 // ===== Config & addresses =====
 const WALLET_SOL = "77M7waPc3o6uEpwHxnNRzJ9Ga47gnFPZVJKu3AP1mRjv";
-const WALLET_ETH = "0xYourEthAddressHere"; // replace with real ETH address if you want ETH option
+const WALLET_ETH = "0xYourEthAddressHere"; // replace if you accept ETH
 const STORAGE_KEY = "ctf_v9_memory";
 const PREMIUM_KEY = "ctf_premium";
 const PREMIUM_AMOUNT_SOL = 0.2; // suggested amount
@@ -246,6 +239,21 @@ const tipWrap = by("tipWrap"), tipBtn = by("tipBtn"), openSaved = by("openSaved"
       txidInput = by("txid"), markPaid = by("markPaid"), closeUpgrade = by("closeUpgrade"),
       copyWalletBtns = document.querySelectorAll(".copyWallet"), openWalletBtns = document.querySelectorAll(".openWallet"),
       premiumWrap = by("premiumWrap");
+
+// ===== Toast helper for quick feedback
+function showToast(msg){
+  const t=document.createElement('div');
+  Object.assign(t.style,{
+    position:'fixed',bottom:'28px',left:'50%',transform:'translateX(-50%)',
+    background:'#0e1b13',border:'1px solid #1b3927',padding:'10px 20px',
+    borderRadius:'12px',color:'#9fffb9',fontWeight:'600',
+    boxShadow:'0 0 15px rgba(74,222,128,.3)',opacity:'0',transition:'opacity .25s,transform .25s',zIndex:'9999'
+  });
+  t.textContent=msg; document.body.appendChild(t);
+  requestAnimationFrame(()=>{t.style.opacity='1';t.style.transform='translate(-50%,0)';});
+  setTimeout(()=>{t.style.opacity='0';t.style.transform='translate(-50%,6px)';},1700);
+  setTimeout(()=>t.remove(),2100);
+}
 
 // ===== Memory & premium state =====
 function loadMem(){ try{ const r = localStorage.getItem(STORAGE_KEY); return r?new Set(JSON.parse(r)):new Set(); }catch{return new Set(); } }
@@ -265,7 +273,7 @@ function renderPremiumBadge(){
   }
 }
 
-// ===== Basic core generator (same as before) =====
+// ===== Core generator =====
 const intros=["Honestly","Some days","Not gonna lie","Lately","Tell me why","Apparently","It's wild that","Sometimes I feel like","Just realized","You ever notice"];
 const subjects=["the market","crypto","this coin","my portfolio","the charts","everything on-chain","my trades","my patience","these bags","my screen time"];
 const actions=["keeps testing me","just wants chaos","never lets me rest","makes zero sense","is playing games","won’t calm down","acts like it’s personal","keeps reminding me I know nothing","is allergic to stability","has its own mood swings"];
@@ -285,9 +293,7 @@ function buildSentence(keyword,len){
   }
 }
 
-// ===== Storage helpers & saved modal rendering =====
-function loadMemory(){ try{ const r = localStorage.getItem(STORAGE_KEY); return r?new Set(JSON.parse(r)):new Set(); }catch{return new Set(); } }
-function saveMemorySet(s){ try{ localStorage.setItem(STORAGE_KEY, JSON.stringify([...s])); }catch{} }
+// ===== Saved tweets modal rendering =====
 function renderSavedList(){
   savedBody.innerHTML = "";
   const items = [...memory];
@@ -301,13 +307,11 @@ function renderSavedList(){
     const actions = document.createElement("div");
     actions.style.display = "flex";
     actions.style.gap = "8px";
-    // delete
     const del = document.createElement("button"); del.className="del"; del.textContent="🗑 Delete";
-    del.onclick = ()=>{ memory.delete(txt); saveMemorySet(memory); renderSavedList(); };
-    // export (premium-only)
+    del.onclick = ()=>{ memory.delete(txt); saveMem(memory); renderSavedList(); };
     if(isPremium()){
       const exp = document.createElement("button"); exp.className="del"; exp.textContent="⬇ Export";
-      exp.onclick = ()=> { downloadText(txt.replace(/\n/g,' '), 'tweet.txt'); };
+      exp.onclick = ()=> { const blob = new Blob([txt.replace(/\n/g,' ')], {type:'text/plain'}); const url = URL.createObjectURL(blob); const a=document.createElement('a'); a.href=url; a.download='tweet.txt'; document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(url); };
       actions.appendChild(exp);
     }
     actions.appendChild(del);
@@ -316,55 +320,33 @@ function renderSavedList(){
   });
 }
 
-// download helper
-function downloadText(text, filename){
-  const blob = new Blob([text], {type: 'text/plain;charset=utf-8'});
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a'); a.href = url; a.download = filename; document.body.appendChild(a);
-  a.click(); a.remove(); URL.revokeObjectURL(url);
-}
-
-// ===== Premium helper (export all) =====
-function exportAll(){
-  if(!isPremium()){ alert("This is a Premium feature. Upgrade to export all saved tweets."); return; }
-  const arr = [...memory];
-  if(arr.length===0){ alert("No saved tweets to export."); return; }
-  const txt = arr.join("\n\n");
-  downloadText(txt, "saved-tweets.txt");
-}
-
-// ===== Wallet UI functions (copy/open) =====
+// ===== Upgrade modal wallet actions =====
 function tryOpenSolana(uri){
-  // Try open via window.open; may be blocked in some browsers
   try{ const w = window.open(uri); if(!w) window.location.href = uri; }catch(e){ window.location.href = uri; }
 }
 function copyToClipboard(text){ return navigator.clipboard.writeText(text); }
 
-// copy/open handlers
-copyWalletBtns.forEach(btn=>{
-  btn.addEventListener('click', async (e)=>{
+document.querySelectorAll(".copyWallet").forEach(btn=>{
+  btn.addEventListener('click', async ()=>{
     const w = btn.getAttribute('data-wallet');
     if(w === "phantom"){
       await copyToClipboard(WALLET_SOL);
       alert("SOL address copied to clipboard: " + WALLET_SOL);
-    } else if(w === "trusteth" || w === "metamask"){
+    } else {
       await copyToClipboard(WALLET_ETH);
       alert("ETH address copied to clipboard: " + WALLET_ETH);
     }
   });
 });
-openWalletBtns.forEach(btn=>{
-  btn.addEventListener('click',(e)=>{
+document.querySelectorAll(".openWallet").forEach(btn=>{
+  btn.addEventListener('click',()=>{
     const w = btn.getAttribute('data-wallet');
     if(w === "phantom"){
-      // try open solana URI to prompt wallet apps to open
-      tryOpenSolana(`solana:${WALLET_SOL}?amount=${encodeURIComponent(PREMIUM_AMOUNT_SOL)}`);
+      // deep link via solana: scheme
+      tryOpenSolana(`solana:${WALLET_SOL}?amount=${encodeURIComponent(PREMIUM_AMOUNT_SOL)}&label=${encodeURIComponent("Crypto Tweet Factory")}&message=${encodeURIComponent("Thanks for the tip!")}`);
     } else if(w === "trust"){
-      // open trustwallet link (deep link) – best effort
-      // trustwallet://send?address=<address>&asset=ETH
       window.open(`https://link.trustwallet.com/send?address=${WALLET_ETH}`, "_blank");
     } else if(w === "metamask"){
-      // metamask deep links are limited; open metamask website instruction
       window.open("https://metamask.io/", "_blank");
     }
   });
@@ -373,11 +355,7 @@ openWalletBtns.forEach(btn=>{
 // ===== Mark as paid flow (manual) =====
 markPaid.addEventListener('click', ()=>{
   const tx = txidInput.value.trim();
-  if(!tx){
-    alert("Please paste a transaction ID (TXID) that you received after payment.");
-    return;
-  }
-  // NOTE: This is manual: we don't verify the TXID. We simply mark local machine as premium.
+  if(!tx){ alert("Please paste a transaction ID (TXID) that you received after payment."); return; }
   if(confirm("By clicking OK you confirm you've sent the payment. This will mark this browser as Premium.")){
     localStorage.setItem(PREMIUM_KEY, "true");
     renderPremiumBadge();
@@ -388,22 +366,16 @@ markPaid.addEventListener('click', ()=>{
 });
 closeUpgrade.addEventListener('click', ()=>{ upgradeOverlay.style.display = "none"; });
 
-// ===== Modal open/close for saved tweets =====
-openSaved.addEventListener('click', ()=>{
-  modalOverlay.style.display = "flex"; renderSavedList();
-});
+// ===== Saved tweets modal open/close =====
+openSaved.addEventListener('click', ()=>{ modalOverlay.style.display = "flex"; renderSavedList(); });
 closeModal.addEventListener('click', ()=>{ modalOverlay.style.display = "none"; });
 modalOverlay.addEventListener('click', (e)=>{ if(e.target === modalOverlay) modalOverlay.style.display = "none"; });
-clearAll.addEventListener('click', ()=>{ if(confirm("Delete ALL saved tweets? This cannot be undone.")){ memory = new Set(); saveMemorySet(memory); renderSavedList(); } });
+clearAll.addEventListener('click', ()=>{ if(confirm("Delete ALL saved tweets? This cannot be undone.")){ memory = new Set(); saveMem(memory); renderSavedList(); } });
 
-// ===== core generator + UI (same behavior as before with uniqueness checks) =====
+// ===== Generator UI =====
 const STORAGE_MEM = STORAGE_KEY;
-function loadMemorySet(){ try{ const r = localStorage.getItem(STORAGE_MEM); return r?new Set(JSON.parse(r)):new Set(); }catch{return new Set(); } }
-function saveMemorySet2(s){ try{ localStorage.setItem(STORAGE_MEM, JSON.stringify([...s])); }catch{} }
-memory = loadMemorySet();
-
 let current="", history=[], autoTimer=null, countTimer=null;
-let INTERVAL = 5000; // default 5s
+let INTERVAL = 5000;
 
 const tweetBox = document.getElementById("tweet-box"), searchEl = document.getElementById("search"),
 toneEl = document.getElementById("tone"), lenEl = document.getElementById("length"),
@@ -413,7 +385,7 @@ btnCopy = document.getElementById("copy"), btnAuto = document.getElementById("au
 btnBack = document.getElementById("back"), speedSel = document.getElementById("speed");
 
 function isDup(t){ return memory.has(t); }
-function remember2(t){ memory.add(t); saveMemorySet2(memory); }
+function remember2(t){ memory.add(t); saveMem(memory); }
 
 function genUnique(){
   const kw = searchEl.value; const len = lenEl.value;
@@ -425,7 +397,6 @@ function genUnique(){
   } while(isDup(t));
   return t;
 }
-
 function showTweet(t){ tweetBox.textContent = t; }
 function updateBack(){ btnBack.disabled = !history.length; btnBack.style.opacity = history.length ? 1 : 0.5; }
 
@@ -448,48 +419,37 @@ function setAuto(on){
   else { btnAuto.textContent = "Auto Mode : OFF"; clearInterval(autoTimer); autoTimer = null; }
   resetCountdown();
 }
-
-// speed selector changes interval; if not premium and choosing <5000 disallow
 speedSel.addEventListener('change', ()=>{
   const val = parseInt(speedSel.value,10) || 5000;
   if(val < 5000 && !isPremium()){
     alert("Shorter intervals (<5s) are Premium. Click Upgrade to unlock.");
-    // revert to 5000
     speedSel.value = "5000";
     return;
   }
   INTERVAL = val;
   if(autoTimer){ setAuto(false); setAuto(true); }
 });
-
-// buttons
 btnGen.onclick = generate;
 btnSearch.onclick = generate;
 btnTweet.onclick = ()=> window.open("https://twitter.com/intent/tweet?text=" + encodeURIComponent(current), "_blank");
 btnCopy.onclick = async ()=> { await navigator.clipboard.writeText(current); btnCopy.textContent = "Copied!"; setTimeout(()=>btnCopy.textContent = "Copy", 1200); };
 btnAuto.onclick = ()=> setAuto(!autoTimer);
 btnBack.onclick = back;
-
-// upgrade button opens modal
 openUpgrade.addEventListener('click', ()=>{ upgradeOverlay.style.display = "flex"; });
 
-// when marking premium via UI, set flag (already handled above via markPaid)
-// also add quick "Unlock for free" dev helper? (no — security)
+// ===== Tip SOL (header button) — copy + direct phantom deep link =====
+tipBtn.addEventListener('click', async ()=>{
+  try{ await navigator.clipboard.writeText(WALLET_SOL); showToast("Address copied ✅"); }catch(e){}
+  // Deep-link "solana:" triggert Wallet direkt (Phantom/andere)
+  const deeplink = `solana:${WALLET_SOL}?amount=${encodeURIComponent(0.05)}&label=${encodeURIComponent("Crypto Tweet Factory")}&message=${encodeURIComponent("Thanks for the tip!")}`;
+  try { window.location.href = deeplink; } catch(e) { window.open(deeplink, "_blank"); }
+});
 
 /* initialize */
 renderPremiumBadge();
 generate();
 updateBack();
 setAuto(false);
-
-// Expose exportAll to global for use if needed
-window.exportAllSavedTweets = exportAll;
-
-// small UX: if user is premium, allow exportAll button to appear in saved modal
-// we already render export buttons per item; also add global export holder
-if(isPremium()){
-  // nothing extra needed; save modal provides per-item export; we also expose function exportAllSavedTweets
-}
 </script>
 </body>
 </html>
