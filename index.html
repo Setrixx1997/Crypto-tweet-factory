@@ -53,12 +53,13 @@ select{background:#0b141b;color:#dfe8f4;border:1px solid #13212c;
   box-shadow:0 0 15px rgba(74,222,128,.3);opacity:0;
   transition:opacity .25s,transform .25s;z-index:9999;
 }
+.small{font-size:12px;color:#9ec1ff;margin-left:8px}
 </style>
 </head>
 <body>
 <div class="wrap">
   <header>
-    <h1>Crypto Tweet Factory</h1>
+    <h1>Crypto Tweet Factory <span class="small" id="rpcLabel"></span></h1>
     <div class="right">
       <button id="tipBtn" class="tipBtn">💰 Tip 0.1 SOL</button>
     </div>
@@ -100,17 +101,21 @@ select{background:#0b141b;color:#dfe8f4;border:1px solid #13212c;
 <script src="https://unpkg.com/@solana/web3.js@1.95.3/lib/index.iife.min.js"></script>
 
 <script>
-// ===== Phantom Tip mit v0-TX + Legacy-Fallback =====
+// ===== Phantom Tip mit RPC-Rotation + v0/legacy Fallback =====
 const WALLET_SOL = "77M7waPc3o6uEpwHxnNRzJ9Ga47gnFPZVJKu3AP1mRjv";
 const TIP_AMOUNT_SOL = 0.1;
+
+// Mehrere öffentliche RPCs (ohne API-Key)
 const RPCS = [
-  "https://api.mainnet-beta.solana.com",
-  "https://rpc.ankr.com/solana"
+  "https://rpc.ankr.com/solana",
+  "https://solana-api.projectserum.com",
+  "https://api.mainnet-beta.solana.com"
 ];
 
 let phantomProvider = null;
 let phantomConnected = false;
 let phantomPubkey = null;
+let currentRpc = null;
 
 function showToast(msg){
   const t=document.createElement('div'); t.className='toast'; t.textContent=msg;
@@ -118,6 +123,11 @@ function showToast(msg){
   requestAnimationFrame(()=>{t.style.opacity='1';t.style.transform='translate(-50%,0)';});
   setTimeout(()=>{t.style.opacity='0';t.style.transform='translate(-50%,6px)';},1800);
   setTimeout(()=>t.remove(),2200);
+}
+
+function setRpcLabel(txt){
+  const el=document.getElementById('rpcLabel');
+  el.textContent = txt ? `RPC: ${txt}` : "";
 }
 
 function getProvider(){
@@ -136,12 +146,16 @@ async function getConn(){
   for(const url of RPCS){
     try {
       const c = new solanaWeb3.Connection(url, "confirmed");
-      await c.getEpochInfo(); // quick liveness
+      // einfache Probe
+      await c.getEpochInfo();
+      currentRpc = url;
+      setRpcLabel(new URL(url).hostname);
       return c;
-    } catch {}
+    } catch (e) {
+      // weiter probieren
+    }
   }
-  // fallback to first
-  return new solanaWeb3.Connection(RPCS[0], "confirmed");
+  throw new Error("No RPC reachable");
 }
 
 async function ensureConnected(){
@@ -184,7 +198,17 @@ async function buildLegacyTransfer(fromPubkey, toPubkey, lamports, conn){
 }
 
 async function sendTip(amountSol){
-  const conn = await getConn();
+  let conn;
+  try{
+    conn = await getConn();
+  }catch(e){
+    showToast("All RPCs blocked ❌ — using wallet link");
+    // Fallback: öffne Phantom Universal Link (ohne RPC)
+    const url = `https://phantom.app/ul/transfer?recipient=${encodeURIComponent(WALLET_SOL)}&amount=${encodeURIComponent(amountSol)}&label=${encodeURIComponent("Crypto Tweet Factory")}&message=${encodeURIComponent("Thanks!")}`;
+    window.open(url, "_blank");
+    return;
+  }
+
   const fromPubkey = phantomPubkey;
   const toPubkey   = new solanaWeb3.PublicKey(WALLET_SOL);
   const lamports   = Math.floor(amountSol * solanaWeb3.LAMPORTS_PER_SOL);
@@ -192,7 +216,7 @@ async function sendTip(amountSol){
   let signature, meta;
 
   try{
-    // Prefer v0
+    // v0 bevorzugt
     meta = await buildV0Transfer(fromPubkey, toPubkey, lamports, conn);
     if (phantomProvider.signAndSendTransaction) {
       const res = await phantomProvider.signAndSendTransaction(meta.tx);
@@ -202,7 +226,7 @@ async function sendTip(amountSol){
       signature = await conn.sendRawTransaction(signed.serialize(), { skipPreflight:false });
     }
   }catch(errV0){
-    // Fallback to legacy if wallet complains about version
+    // Legacy-Fallback
     try{
       meta = await buildLegacyTransfer(fromPubkey, toPubkey, lamports, conn);
       if (phantomProvider.signAndSendTransaction) {
@@ -213,9 +237,23 @@ async function sendTip(amountSol){
         signature = await conn.sendRawTransaction(signed.serialize(), { skipPreflight:false });
       }
     }catch(errLegacy){
+      const msg = (errLegacy && (errLegacy.message || errLegacy.toString())) || "Unknown";
+      if(msg.includes("403") || msg.toLowerCase().includes("forbidden")){
+        showToast("RPC 403 — switching…");
+        // versuche anderen RPC und retry einmal
+        try{
+          conn = await getConn();
+          return await sendTip(amountSol);
+        }catch(e2){
+          showToast("All RPCs refused ❌ — opening wallet link");
+          const url = `https://phantom.app/ul/transfer?recipient=${encodeURIComponent(WALLET_SOL)}&amount=${encodeURIComponent(amountSol)}&label=${encodeURIComponent("Crypto Tweet Factory")}&message=${encodeURIComponent("Thanks!")}`;
+          window.open(url, "_blank");
+          return;
+        }
+      }
       const code = (errLegacy && (errLegacy.code || errLegacy.error?.code));
       if(code === 4001) showToast('User rejected in wallet ❌');
-      else showToast(`Failed ❌ ${errLegacy?.message || ''}`.trim());
+      else showToast(`Failed ❌ ${msg}`.slice(0,90));
       throw errLegacy;
     }
   }
@@ -227,7 +265,7 @@ async function sendTip(amountSol){
   setTimeout(()=> window.open(`https://solscan.io/tx/${signature}`, "_blank"), 400);
 }
 
-// Zwei-Phasen-Logik auf einem Button
+// Zwei-Phasen-Logik
 document.getElementById("tipBtn").addEventListener("click", async ()=>{
   try{ await navigator.clipboard.writeText(WALLET_SOL); showToast("Address copied ✅"); }catch(e){}
   try{
