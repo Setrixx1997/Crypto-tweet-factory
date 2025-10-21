@@ -20,6 +20,7 @@ body{
   background:linear-gradient(180deg,rgba(255,255,255,.03),rgba(255,255,255,.02));
   border:1px solid var(--line);border-radius:16px;padding:18px;
   box-shadow:0 12px 36px rgba(0,0,0,.35);
+  position:relative;
 }
 header{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}
 h1{margin:0;font-size:20px;color:var(--neon)}
@@ -61,6 +62,11 @@ select{background:#0b141b;color:#dfe8f4;border:1px solid #13212c;
   border-radius:12px;color:#9fffb9;font-weight:600;
   box-shadow:0 0 15px rgba(74,222,128,.3);opacity:0;
   transition:opacity .25s,transform .25s;z-index:9999;
+}
+.brand{
+  position:fixed;left:18px;bottom:18px;color:var(--neon);
+  opacity:.85;font-weight:800;letter-spacing:.3px;font-size:12px;
+  background:#0f1a12;border:1px solid #1b3927;border-radius:10px;padding:6px 10px;
 }
 </style>
 </head>
@@ -107,6 +113,8 @@ select{background:#0b141b;color:#dfe8f4;border:1px solid #13212c;
   </div>
 </div>
 
+<div class="brand">Created by @setrixx19</div>
+
 <script>
 // ====== Config ======
 const WALLET_SOL = "77M7waPc3o6uEpwHxnNRzJ9Ga47gnFPZVJKu3AP1mRjv";
@@ -127,32 +135,133 @@ document.getElementById("tipWallet").addEventListener("click", async ()=>{
   showToast("Wallet copied ✅");
 });
 
-// ====== Tweet Generator ======
-const intros=["Honestly","Some days","Not gonna lie","Lately","Tell me why","Apparently","It's wild that","Sometimes I feel like","Just realized","You ever notice"];
-const subjects=["the market","crypto","this coin","my portfolio","the charts","everything on-chain","my trades","my patience","these bags","my screen time"];
-const actions=["keeps testing me","just wants chaos","never lets me rest","makes zero sense","is playing games","won’t calm down","acts like it’s personal","keeps reminding me I know nothing","is allergic to stability","has its own mood swings"];
-const reactions=["and yet here I am still watching.","but I’m still here pretending I understand.","and I can’t even be mad anymore.","and I swear it’s funny now.","but deep down I love the drama.","and I keep thinking I’ve learned something.","so I’ll just keep coping in HD.","while acting like it’s all part of my plan.","and I’m taking it personally.","but this is the life I chose."];
-const addons=["Trying to stay calm but my coffee’s doing the heavy lifting.","At this point I’m trading emotions more than tokens.","Every dip feels like character development.","Still waiting for a green candle that respects me.","My phone battery fears price alerts now.","Maybe the real bull run was the coping we did along the way."];
+// ====== High-Variety Tweet Generator ======
+// Bigger word banks + multiple templates + optional spice + random punctuation/emojis.
+// Also performs exact-duplicate avoidance within the session.
+const bank = {
+  intros: ["Honestly","Some days","Not gonna lie","Lately","Tell me why","Apparently","Low-key","Somehow","Real talk","Hot take","Confession","No shade","Tbh","For real","Plot twist"],
+  qualifiers:["kinda","sorta","a bit","low-key","high-key","dead serious","for reasons unknown","not even joking","no lie","apparently"],
+  subjects: [
+    "the market","crypto","this coin","my portfolio","the charts","on-chain chaos","my trades","my patience",
+    "these bags","my screen time","the candles","my limit orders","risk management","the timeline","the whales"
+  ],
+  verbs:[
+    "keeps testing me","just wants chaos","never lets me rest","makes zero sense","is playing games",
+    "won’t calm down","acts personal","refuses to behave","does its own thing","is on hard mode",
+    "spikes then dips","dumps then winks","speedruns my emotions","pretends to be rational","trolls everyone"
+  ],
+  reactions:[
+    "and I’m still here watching.","and I pretend I understand.","and I can’t even be mad.","and somehow it’s funny now.",
+    "but deep down I live for this.","so I keep acting like it’s the plan.","and I’m taking it personally.",
+    "and I call it ‘character growth’.","and I still set alerts.","and I keep refreshing like it helps."
+  ],
+  additives:[
+    "Coffee doing the heavy lifting today.","Every dip feels like lore unlock.","Green candles owe me an apology.",
+    "Phone battery fears price alerts.","My screen time is mostly coping.","Maybe the real bull run was patience.",
+    "Liquidity vanished faster than my plans.","I blinked and missed three moves.","Charts are roasting me politely."
+  ],
+  connectors:["—","–","…",";",","," | "],
+  emojiSoft:["🙂","😅","🤝","🤷‍♂️","🤷‍♀️","🫠","📉","📈","💤","🧃","🧠","🪙"],
+  emojiSpicy:["🔥","💀","🚀","🧨","🫡","🌀","⚡","🎯","🛠️","🥲"],
+  enders:["","", "", " Right?"," Be honest."," Tell me I’m not alone."," Don’t @ me."," It’s fine."," Probably."," Maybe."],
+  styles:["alllower","none"]
+};
 
-function rnd(a){return a[Math.floor(Math.random()*a.length)]}
+// Simple helpers
+const rnd = a => a[Math.floor(Math.random()*a.length)];
 function clamp(s,m){return s.length>m?s.slice(0,m-1)+'…':s;}
-function buildSentence(keyword,len){
-  const kw=keyword.trim()?` ${keyword}`:"";
-  if(len==="short"){
-    return clamp(`${rnd(intros)} ${rnd(subjects)}${kw} ${rnd(actions)} ${rnd(reactions)}`,150);
+
+// Random optional bits
+function maybe(prob){ return Math.random() < prob; }
+function capFirst(s){ return s.charAt(0).toUpperCase() + s.slice(1); }
+function injectKeyword(base, kw){
+  kw = (kw||"").trim();
+  if(!kw) return base;
+  // sprinkle keyword once in subject or as tag
+  if(maybe(0.5)){
+    return base.replace(/(this coin|crypto|the market|these bags|the charts)/, m => `${m} ${kw}`);
   } else {
-    return clamp(`${rnd(intros)} ${rnd(subjects)}${kw} ${rnd(actions)} ${rnd(reactions)} ${rnd(addons)}`,250);
+    const sep = rnd([" "," "," "," — "," – "," · "]);
+    return base + sep + kw;
   }
 }
 
+// Multiple templates
+function templateA(){ // Intro + subject + verb + reaction
+  const intro = rnd(bank.intros);
+  const qual = maybe(0.35) ? " " + rnd(bank.qualifiers) : "";
+  const subj = rnd(bank.subjects);
+  const verb = rnd(bank.verbs);
+  const react= rnd(bank.reactions);
+  const conn = rnd(bank.connectors);
+  const soft = maybe(0.35) ? " " + rnd(bank.emojiSoft) : "";
+  const spicy= maybe(0.2)  ? " " + rnd(bank.emojiSpicy) : "";
+  const end  = rnd(bank.enders);
+  return `${intro}${qual} ${subj} ${verb}${conn} ${react}${soft}${spicy}${end}`;
+}
+function templateB(){ // Statement + parenthetical + additive
+  const subj = capFirst(rnd(bank.subjects));
+  const verb = rnd(bank.verbs);
+  const add  = rnd(bank.additives);
+  const soft = maybe(0.35) ? " " + rnd(bank.emojiSoft) : "";
+  return `${subj} ${verb}. (${add})${soft}`;
+}
+function templateC(){ // Rhetorical
+  const intro = rnd(["Tell me why","Is it just me or","Does anyone else feel like","Be honest,"]);
+  const subj = rnd(bank.subjects);
+  const verb = rnd(bank.verbs).replace(/^\w+ /,""); // small variety
+  const soft = maybe(0.35) ? " " + rnd(bank.emojiSoft) : "";
+  return `${intro} ${subj} ${verb}?${soft}`;
+}
+function templateD(){ // Short punchy
+  const subj = capFirst(rnd(bank.subjects));
+  const soft = maybe(0.25) ? " " + rnd(bank.emojiSoft) : "";
+  const spicy= maybe(0.15) ? " " + rnd(bank.emojiSpicy) : "";
+  return `${subj}. ${capFirst(rnd(bank.additives))}${soft}${spicy}`;
+}
+
+const templates = [templateA, templateB, templateC, templateD];
+
+// Style pass (occasionally lowercase casual style)
+function stylePass(s){
+  if(rnd(bank.styles) === "alllower" && s.length < 200){
+    return s.toLowerCase().replace(/^./, c => c); // keep fully lower
+  }
+  return s;
+}
+
+// Build sentence with strong randomness + len control
+function buildSentence(keyword, len){
+  let s = rnd(templates)();
+  s = injectKeyword(s, keyword);
+  s = stylePass(s);
+  const limit = (len==="short") ? 150 : 250;
+  return clamp(s, limit);
+}
+
+// Session memory to avoid exact duplicates
+const seen = new Set();
+function uniqueSentence(keyword,len){
+  let tries = 0, s = "";
+  do{
+    s = buildSentence(keyword,len);
+    tries++;
+    if(tries>80){break;}
+  }while(seen.has(s));
+  seen.add(s);
+  return s;
+}
+
 let history=[],current="",autoTimer=null,INTERVAL=5000,countTimer=null;
-const tweetBox=document.getElementById("tweet-box"),searchEl=document.getElementById("search"),
-lenEl=document.getElementById("length"),countdown=document.getElementById("countdown");
-const placeholderEl = document.querySelector('.placeholder');
+const tweetBox=document.getElementById("tweet-box"),
+      searchEl=document.getElementById("search"),
+      lenEl=document.getElementById("length"),
+      countdown=document.getElementById("countdown"),
+      placeholderEl = document.querySelector('.placeholder');
 
 function generate(){
   if(current)history.push(current);
-  current=buildSentence(searchEl.value,lenEl.value);
+  current=uniqueSentence(searchEl.value,lenEl.value);
   tweetBox.textContent=current;
   if(placeholderEl) placeholderEl.style.display='none';
   resetCountdown();
@@ -191,7 +300,7 @@ document.getElementById("copy").onclick=async()=>{
 document.getElementById("auto").onclick=()=>setAuto(!autoTimer);
 document.getElementById("speed").onchange=e=>{INTERVAL=parseInt(e.target.value)||5000;if(autoTimer){setAuto(false);setAuto(true);}};
 
-// Kein Auto-Generate beim Laden, Startzustand bleibt leer
+// No auto-generate on load
 </script>
 </body>
 </html>
