@@ -41,6 +41,118 @@ select{background:#0b141b;color:#dfe8f4;border:1px solid var(--line);padding:8px
 <script>
 try{if(localStorage.getItem('ctf_theme')==='neon'){document.documentElement.classList.add('theme-neon')}}catch(e){}
 </script>
+<style>
+/* Dark caret for selects (speed + length), also on hover/focus */
+select,
+select:hover,
+select:focus,
+#length,
+#length:hover,
+#length:focus,
+.speedSelect,
+.speedSelect:hover,
+.speedSelect:focus {
+  -webkit-appearance: none;
+  appearance: none;
+  background-color: #0b141b;
+  color: #dfe8f4;
+  border: 1px solid var(--line);
+  padding-right: 38px;
+  background-image:
+    url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24'><path fill='%23202a34' d='M7 10l5 5 5-5z'/></svg>");
+  background-repeat: no-repeat;
+  background-position: right 10px center;
+  background-size: 14px;
+}
+select::-ms-expand { display: none; }
+select:focus, #length:focus, .speedSelect:focus {
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(96,170,255,0.15);
+}
+</style>
+<style>
+/* Hook Boost — match Auto Mode: green neon, breathing light, background parity */
+#hookToggle{
+  position: relative;
+  overflow: visible;
+  background: #0b1115 !important;         /* same panel tone */
+  color: #cfeaff !important;
+  border: 1px solid #13212c !important;    /* same border as panel */
+}
+/* Flame wrapper will be injected if not present */
+#hookToggle .flame{
+  display:inline-block;
+  transition: transform .18s ease, filter .18s ease, opacity .18s ease;
+  filter: drop-shadow(0 0 0 rgba(74,222,128,0));
+  opacity: .9;
+}
+
+/* ACTIVE: green glow like Auto + subtle breathing/flicker */
+#hookToggle.active{
+  /* inner ring + outer glow; tuned to resemble Auto mode, but green */
+  box-shadow:
+    0 0 0 2px rgba(74,222,128,.22) inset,
+    0 0 22px rgba(74,222,128,.48),
+    0 0 46px rgba(74,222,128,.32);
+  border-color: #1e3b2a !important;
+  background-image: radial-gradient(130% 130% at 50% -20%, rgba(74,222,128,.18), transparent 60%);
+  animation: hookPulse 2.1s ease-in-out infinite;
+}
+/* Beam under the button (same vibe as Auto) */
+#hookToggle.active::after{
+  content:"";
+  position:absolute;
+  inset:auto -18px -14px -18px;
+  height:20px;
+  background: radial-gradient(50% 120% at 50% 0%,
+    rgba(74,222,128,.36),
+    rgba(74,222,128,.10) 68%,
+    transparent 85%);
+  filter: blur(10px);
+  pointer-events:none;
+  border-radius: 0 0 18px 18px;
+  animation: hookBeam 1.8s ease-in-out infinite;
+}
+
+/* Flame flicker + gentle drift when active */
+#hookToggle.active .flame{
+  filter: drop-shadow(0 0 6px rgba(74,222,128,.55)) drop-shadow(0 0 16px rgba(74,222,128,.35));
+  text-shadow: 0 0 6px rgba(74,222,128,.45), 0 0 14px rgba(74,222,128,.35);
+  animation:
+    flameDrift 1.3s ease-in-out infinite,
+    flameFlicker 900ms steps(2,end) infinite;
+}
+
+/* Keyframes — pulse on the button, beam shimmer, flame motion/flicker */
+@keyframes hookPulse {
+  0%,100% { box-shadow:
+    0 0 0 2px rgba(74,222,128,.22) inset,
+    0 0 18px rgba(74,222,128,.44),
+    0 0 36px rgba(74,222,128,.28);
+  }
+  50% { box-shadow:
+    0 0 0 2px rgba(74,222,128,.27) inset,
+    0 0 26px rgba(74,222,128,.60),
+    0 0 56px rgba(74,222,128,.38);
+  }
+}
+@keyframes hookBeam {
+  0%,100% { opacity:.70; transform: translateY(0) scaleX(1) }
+  50%     { opacity:.42; transform: translateY(1px) scaleX(1.06) }
+}
+@keyframes flameDrift {
+  0%   { transform: translate(0, 0) rotate(0deg) scale(1) }
+  25%  { transform: translate(0.5px, -0.6px) rotate(-3deg) scale(1.05) }
+  50%  { transform: translate(0, -0.9px) rotate(1.2deg) scale(1.02) }
+  75%  { transform: translate(-0.6px, -0.5px) rotate(-1.6deg) scale(1.05) }
+  100% { transform: translate(0, 0) rotate(0deg) scale(1) }
+}
+@keyframes flameFlicker {
+  0%   { opacity: .92 }
+  50%  { opacity: .76 }
+  100% { opacity: .92 }
+}
+</style>
 </head>
 <body>
 <div id="sideHandle" title="Toggle Tweet Rank">🏅</div>
@@ -130,9 +242,11 @@ const Sound=(function(){
   function chord(freqs,opts={}){freqs.forEach(f=>tone({freq:f,...opts}))}
   function event(name){
     if(muted) return;
-    if(name==='generate') chord([392,494,659],{type:'triangle',attack:0.015,hold:0.09,release:0.24,gain:0.03});
+    if(name==='generate') chord([392,494], {type:'sine',attack:0.01,hold:0.08,release:0.35,gain:0.035});
     else if(name==='tweet') chord([523,659],{type:'sine',attack:0.01,hold:0.08,release:0.35,gain:0.035});
     else if(name==='copy') tone({freq:780,type:'sine',attack:0.005,hold:0.05,release:0.14,gain:0.03});
+    else if(name==='toggleOn')  chord([880], {type:'square',attack:0.004,hold:0.03,release:0.08,gain:0.035});
+    else if(name==='toggleOff') chord([520], {type:'square',attack:0.004,hold:0.02,release:0.07,gain:0.03});
   }
   return {event,setMuted,isMuted:()=>muted,updateBtn};
 })();
@@ -163,8 +277,35 @@ function expandToRange(s,min,max){while(s.length<min){s+=Math.random()<0.5?fille
 function sentence(len,hookProb=0.4,drift=0){let s=injectKeyword(baseSentence(hookProb),$('search').value);if(len==="long"){const baseTarget=200+Math.floor(Math.random()*51);const target=Math.max(200,Math.min(250,baseTarget+Math.floor(drift)));s=expandToRange(s,target,250);return s}else{return clamp(s,150)}}
 
 // Viral score & UI
-function viralScore(text){let score=50,len=text.length;const hasHook=/^(breaking:|note to self:|hear me out:|wild thought:|update:|plot twist:)/i.test(text);const emojis=(text.match(/[\u{1F300}-\u{1FAFF}]/gu)||[]).length;if(len>=110&&len<=180)score+=18;else if(len>=80&&len<110)score+=10;else if(len>180&&len<=250)score+=6;else score-=6;if(hasHook)score+=12;else score-=2;if(emojis===1)score+=8;if(emojis>=2)score-=4;return Math.max(0,Math.min(100,Math.round(score)))}
-function scoreTips(s){if(s<40)return"Tip: add a short hook and one emoji.";if(s<60)return"Tip: tighten length (110–180) and add one emoji.";if(s<80)return"Nice! Try a sharper hook or one punctuation hit.";return"🔥 Looks viral. Ship it."}
+function viralScore(text){
+  let score = 50;
+  const len = text.length;
+  const hasHook = /^(breaking:|note to self:|hear me out:|wild thought:|update:|plot twist:)/i.test(text);
+  const emojis = (text.match(/[\u{1F300}-\u{1FAFF}]/gu) || []).length;
+
+  if (len >= 110 && len <= 180) score += 22;
+  else if (len >= 80 && len < 110) score += 12;
+  else if (len > 180 && len <= 250) score += 8;
+  else score -= 6;
+
+  if (hasHook) score += 16; else score -= 2;
+
+  if (emojis === 1) score += 10;
+  else if (emojis >= 2) score -= 4;
+
+  if (/[!?]$/.test(text)) score += 2;
+  const kw = (document.getElementById('search')?.value || '').trim();
+  if (kw && new RegExp("\\\\b"+kw.replace(/[.*+?^${}()|[\\]\\\\]/g,'\\\\$&')+"\\\\b", 'i').test(text)) score += 2;
+
+  return Math.max(0, Math.min(100, Math.round(score)));
+}
+function scoreTips(s){
+  if (s < 40) return "Tip: add a short hook and one emoji.";
+  if (s < 60) return "Tip: tighten length (110–180) and add one emoji.";
+  if (s < 80) return "Nice! Try a sharper hook or one punctuation hit.";
+  if (s < 90) return "Strong. Consider a cleaner close or subtle keyword.";
+  return "🔥 Looks viral. Ship it.";
+}
 function updateViralUI(){const el=$('tweet-box'),vwrap=$('vwrap'),vfill=$('vfill'),vnum=$('vnum'),vtips=$('vtips');const text=el.textContent.trim();if(!text){vwrap.style.display='none';vtips.style.display='none';$('vquote').style.display='none';return}const s=viralScore(text);vwrap.style.display='flex';vtips.style.display='block';vfill.style.width=s+'%';vnum.textContent=s;vtips.textContent=scoreTips(s);const quotesLow=["Every red candle writes a better story tomorrow.","Patience is a position too.","The dip is loud, the plan is quiet."],quotesMid=["Less noise, more signal.","Stay curious, stay kind, stay liquid.","Edge grows where comfort ends."],quotesHigh=["This one might fly—ship it.","Small wins compound into big ones.","Momentum loves confidence."];function pickQ(sc){if(sc<40)return quotesLow[Math.floor(Math.random()*quotesLow.length)];if(sc<70)return quotesMid[Math.floor(Math.random()*quotesMid.length)];return quotesHigh[Math.floor(Math.random()*quotesHigh.length)]}const qEl=$('vquote');qEl.style.display='block';qEl.textContent='“'+pickQ(s)+'”'}
 function glowReaction(){const box=$('tweet-box');const score=viralScore(box.textContent||"");let hue=score>80?140:score>60?120:score>40?40:0;box.style.boxShadow=`0 0 0 2px hsla(${hue},90%,55%,.28), 0 0 34px hsla(${hue},90%,60%,.5), inset 0 0 20px hsla(${hue},90%,60%,.18)`;setTimeout(()=>{box.style.boxShadow='';updateViralUI()},320)}
 
@@ -234,6 +375,391 @@ document.addEventListener('DOMContentLoaded', function(){
 });
 </script>
 <div class="brand">Created by @setrixx19</div>
+<!-- Tip Modal for desktop fallback (QR & copy) -->
+<div id="tipModal" style="position:fixed;inset:0;display:none;align-items:center;justify-content:center;background:rgba(0,0,0,.6);z-index:160">
+  <div style="width:min(420px,92vw);background:#0b1115;border:1px solid #13212c;border-radius:14px;padding:16px;box-shadow:0 30px 80px rgba(0,0,0,.55)">
+    <div style="font-weight:800;color:#9fe6b8;margin-bottom:6px">Tip in SOL</div>
+    <div style="color:#cfeaff;margin-bottom:10px">Scan the QR with Phantom/any SOL wallet, or copy the address to send <strong>0.1 SOL</strong>.</div>
+    <canvas id="tipQR" width="256" height="256" style="display:block;margin:0 auto 10px;border-radius:8px;background:#081019;border:1px solid #12202a"></canvas>
+    <div style="font-family:monospace;color:#bfffd3;text-align:center;margin-bottom:10px" id="tipAddrText"></div>
+    <div id="tipMsg" style="min-height:18px;font-size:12px;color:#8aa1b1;text-align:center;margin-bottom:8px"></div>
+    <div style="display:flex;gap:8px;justify-content:space-between">
+      <button id="tipCopy" class="btn small">Copy Address</button>
+      <div style="flex:1"></div>
+      <button id="tipClose" class="btn gen">Close</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// Global Toggle-Click-Sounds – no UI changes, recognizes Hook/Auto by text/id/class
+(function(){
+  const AC = window.AudioContext || window.webkitAudioContext;
+  let ctx;
+  function ensureAC(){ if(!ctx) ctx = new AC(); return ctx; }
+  function tone(freq, type, a, h, r, g){
+    try{
+      const ac = ensureAC(), t0 = ac.currentTime;
+      const o = ac.createOscillator(), gn = ac.createGain();
+      o.type = type; o.frequency.setValueAtTime(freq, t0);
+      gn.gain.setValueAtTime(0, t0); o.connect(gn); gn.connect(ac.destination);
+      gn.gain.linearRampToValueAtTime(g, t0+a);
+      gn.gain.setValueAtTime(g, t0+a+h);
+      gn.gain.linearRampToValueAtTime(0.0001, t0+a+h+r);
+      o.start(t0); o.stop(t0+a+h+r+0.03);
+    }catch(e){}
+  }
+  const Sound = window.Sound || {
+    event: (name)=>{
+      if(name==='toggleOn')  tone(880, 'square', 0.004, 0.03, 0.08, 0.035);
+      if(name==='toggleOff') tone(520, 'square', 0.004, 0.02, 0.07, 0.030);
+    }
+  };
+  function readState(el){
+    if(!el) return null;
+    const ap = el.getAttribute && el.getAttribute('aria-pressed');
+    if(ap === 'true') return true;
+    if(ap === 'false') return false;
+    if(el.dataset && el.dataset.state){
+      if(/on|true|1/i.test(el.dataset.state)) return true;
+      if(/off|false|0/i.test(el.dataset.state)) return false;
+    }
+    if(el.classList && el.classList.contains('active')) return true;
+    const t = (el.textContent||'').toLowerCase();
+    if(/\bon\b/.test(t)) return true;
+    if(/\boff\b/.test(t)) return false;
+    return null;
+  }
+  function looksLikeHook(el){
+    const id = (el.id||'').toLowerCase();
+    const cls = (el.className||'').toLowerCase();
+    const txt = (el.textContent||'').toLowerCase();
+    return id.includes('hook') || cls.includes('hook') || txt.includes('hook');
+  }
+  function looksLikeAuto(el){
+    const id = (el.id||'').toLowerCase();
+    const cls = (el.className||'').toLowerCase();
+    const txt = (el.textContent||'').toLowerCase();
+    return id.includes('auto') || cls.includes('auto') || txt.includes('auto');
+  }
+  document.addEventListener('click', function(ev){
+    let el = ev.target;
+    el = el.closest && el.closest('button, [role="button"], .btn');
+    if(!el) return;
+    const isHook = looksLikeHook(el);
+    const isAuto = !isHook && looksLikeAuto(el);
+    if(!isHook && !isAuto) return;
+    setTimeout(()=>{
+      let now = readState(el);
+      if(now === null){
+        const last = el.__lastToggleState === true;
+        now = !last;
+      }
+      try{ Sound.event(now ? 'toggleOn' : 'toggleOff'); }catch(e){}
+      el.__lastToggleState = now;
+    }, 0);
+  }, true);
+})();
+</script>
+
+<script>
+// Balanced viralScore override (more spread incl. <40)
+(function(){
+  function escapeReg(s){ return s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"); }
+  window.viralScore = function(text){
+    let s = 42; // lower base
+    const t = (text||"").trim();
+    const len = t.length;
+
+    const hasHook = /^(breaking:|note to self:|hear me out:|wild thought:|update:|plot twist:)/i.test(t);
+    const emojis = (t.match(/[\u{1F300}-\u{1FAFF}]/gu) || []).length;
+    const hashtags = (t.match(/#[a-z0-9_]+/gi) || []).length;
+    const letters = t.replace(/[^A-Za-z]/g,"");
+    const capsRatio = letters ? (letters.replace(/[^A-Z]/g,"").length / letters.length) : 0;
+
+    const words = t.toLowerCase().split(/\s+/).filter(w=>w && !/^#/.test(w));
+    const freq = {}; let maxFreq = 0;
+    for(const w of words){ freq[w]=(freq[w]||0)+1; if(freq[w]>maxFreq) maxFreq=w?freq[w]:maxFreq; }
+
+    if (len >= 110 && len <= 170) s += 14;
+    else if (len >= 80 && len < 110) s += 8;
+    else if (len > 170 && len <= 250) s += 6;
+    else if (len < 60) s -= 16;
+    else if (len > 260) s -= 14;
+    else s -= 6;
+
+    if (hasHook) s += 10;
+
+    if (emojis === 0) s += 0;
+    else if (emojis === 1) s += 4;
+    else if (emojis === 2) s += 1;
+    else s -= 8;
+
+    if (hashtags >= 4) s -= 10;
+    else if (hashtags === 3) s -= 6;
+    else if (hashtags === 2) s -= 3;
+
+    if (capsRatio > 0.35) s -= 10;
+    else if (capsRatio > 0.25) s -= 6;
+
+    if (maxFreq >= 4) s -= 10;
+    else if (maxFreq === 3) s -= 6;
+
+    const kwEl = document.getElementById('search');
+    if (kwEl){
+      const kw = kwEl.value.trim();
+      if (kw){
+        const re = new RegExp("\\\\b"+escapeReg(kw)+"\\\\b","i");
+        if (re.test(t)) s += 2;
+      }
+    }
+
+    s += (Math.random()*16 - 8);
+
+    s = Math.max(0, Math.min(100, Math.round(s)));
+    return s;
+  };
+
+  try{
+    if (typeof updateViralUI === "function"){
+      updateViralUI();
+    }
+  }catch(e){}
+})();
+</script>
+<!-- Mute integration for Auto/Hook toggle sounds -->
+<script>
+(function(){
+  const LS_KEY = 'ctf_muted';
+  // 1) Global muted flag (persisted)
+  if (typeof window.__ctfMuted === 'undefined') {
+    window.__ctfMuted = (localStorage.getItem(LS_KEY) === '1');
+  }
+  function setMuted(v){
+    window.__ctfMuted = !!v;
+    try{ localStorage.setItem(LS_KEY, window.__ctfMuted ? '1' : '0'); }catch(e){}
+    // If a Sound API exists with setMuted, sync it
+    try{ if (window.Sound && typeof window.Sound.setMuted === 'function') window.Sound.setMuted(window.__ctfMuted); }catch(e){}
+  }
+
+  // 2) Wrap/Proxy Sound.event so ALL future sounds respect mute
+  (function hardenSound(){
+    const original = (window.Sound && window.Sound.event) ? window.Sound.event.bind(window.Sound) : null;
+    const AC = window.AudioContext || window.webkitAudioContext;
+    let ctx;
+    function ensureAC(){ if(!ctx) ctx = new AC(); return ctx; }
+    function tone(freq, type, a, h, r, g){
+      try{
+        const ac = ensureAC(), t0 = ac.currentTime;
+        const o = ac.createOscillator(), gn = ac.createGain();
+        o.type = type; o.frequency.setValueAtTime(freq, t0);
+        gn.gain.setValueAtTime(0, t0); o.connect(gn); gn.connect(ac.destination);
+        gn.gain.linearRampToValueAtTime(g, t0+a);
+        gn.gain.setValueAtTime(g, t0+a+h);
+        gn.gain.linearRampToValueAtTime(0.0001, t0+a+h+r);
+        o.start(t0); o.stop(t0+a+h+r+0.03);
+      }catch(e){}
+    }
+    // Create a safe facade
+    const facade = {
+      event(name){
+        if (window.__ctfMuted) return; // <- respect mute universally
+        if (original) { try{ original(name); return; }catch(e){} }
+        // minimal fallback if no original Sound is present
+        if (name === 'toggleOn')  tone(880, 'square', 0.004, 0.03, 0.08, 0.035);
+        else if (name === 'toggleOff') tone(520, 'square', 0.004, 0.02, 0.07, 0.030);
+      },
+      setMuted: setMuted,
+      isMuted: function(){ return !!window.__ctfMuted; }
+    };
+    window.Sound = Object.assign({}, window.Sound, facade);
+  })();
+
+  // 3) Wire up common mute buttons to toggle the global flag (IDs/classes/text fallbacks)
+  function looksLikeMute(el){
+    const id = (el.id||'').toLowerCase();
+    const cls = (el.className||'').toLowerCase();
+    const txt = (el.textContent||'').toLowerCase();
+    return id.includes('mute') || cls.includes('mute') || txt.includes('mute');
+  }
+  function readPressed(el){
+    // Prefer aria-pressed
+    const ap = el.getAttribute && el.getAttribute('aria-pressed');
+    if (ap === 'true') return true;
+    if (ap === 'false') return false;
+    // class 'active' means ON
+    if (el.classList && el.classList.contains('active')) return true;
+    // text ON/OFF fallback
+    const t = (el.textContent||'').toLowerCase();
+    if (/\bon\b/.test(t)) return true;
+    if (/\boff\b/.test(t)) return false;
+    return null;
+  }
+  function applyInitialVisual(el){
+    if (!el) return;
+    // If your UI uses an 'active' class for ON, sync it to our stored mute state (note: mute ON usually means no sound)
+    // Here we won't flip your UI; we only ensure aria-pressed if present.
+    try{ el.setAttribute('aria-pressed', (!window.__ctfMuted)+''); }catch(e){}
+  }
+  document.addEventListener('click', function(ev){
+    let el = ev.target;
+    el = el.closest && el.closest('button, [role="button"], .btn');
+    if (!el) return;
+    if (!looksLikeMute(el)) return;
+    // Wait a tick so the UI can toggle its own state first, then read and invert to muted
+    setTimeout(function(){
+      // Many UIs mark ON = sound ON, but our 'muted' flag is the inverse
+      const isOn = readPressed(el);
+      if (isOn === null) {
+        // If unknown, toggle from current setting
+        setMuted(!window.__ctfMuted);
+      } else {
+        setMuted(!isOn); // if UI shows ON (sound on), we mute=false; if UI shows OFF, mute=true
+      }
+    }, 0);
+  }, true);
+
+  // 4) Apply stored state at load
+  setMuted(window.__ctfMuted);
+  // Optionally, try to find a mute element to sync aria
+  const guess = document.getElementById('mute') || document.getElementById('muteBtn') || document.querySelector('[data-role="mute"]');
+  applyInitialVisual(guess);
+})();
+</script>
+<script>
+// Enhance Hook button to have an animatable flame span without changing your toggle logic
+(function(){
+  const hook = document.getElementById('hookToggle');
+  if(!hook || hook.__flameWired) return;
+  // If button text already contains a flame emoji, wrap only the first occurrence
+  const txt = hook.textContent;
+  const m = txt.match(/(.*?)(\u{1F525})(.*)/u);
+  if (m){
+    const before = m[1].trim();
+    const after  = (m[3]||"").trim();
+    hook.innerHTML = (before? before+" " : "") + '<span class="flame">🔥</span>' + (after? " "+after : "");
+  } else {
+    // If no flame present, prepend one (keeps the rest intact)
+    hook.innerHTML = '<span class="flame">🔥</span> ' + txt.trim();
+  }
+  hook.__flameWired = true;
+})();
+</script>
+<script>
+/* === Sound Controller (labels: "Sound On" / "Muted") === */
+(function(){
+  const LS = 'ctf_soundon';
+  // Global flag: true => sounds allowed; false => blocked
+  if (typeof window.__ctfSoundOn === 'undefined') {
+    const stored = localStorage.getItem(LS);
+    window.__ctfSoundOn = (stored === null) ? true : (stored === '1');
+  }
+  function setSoundOn(v){
+    window.__ctfSoundOn = !!v;
+    try{ localStorage.setItem(LS, window.__ctfSoundOn ? '1':'0'); }catch(e){}
+    // sync legacy muted flag for any third-party checks
+    window.__ctfMuted = !window.__ctfSoundOn;
+  }
+  window.__ctfSetSoundOn = setSoundOn;
+
+  // Wrap HTMLAudioElement.play so it respects __ctfSoundOn
+  (function(){
+    const P = window.HTMLAudioElement && window.HTMLAudioElement.prototype;
+    if (!P || P.__ctfSoundOnWrap) return;
+    const _play = P.play;
+    P.play = function(){
+      if (!window.__ctfSoundOn) { try{ this.pause(); }catch(e){} return Promise.resolve(); }
+      try{ return _play.apply(this, arguments); }catch(e){ return Promise.reject(e); }
+    };
+    P.__ctfSoundOnWrap = true;
+  })();
+
+  // Wrap OscillatorNode.start (WebAudio beeps)
+  (function(){
+    const Proto = window.OscillatorNode && window.OscillatorNode.prototype;
+    if (!Proto || Proto.__ctfSoundOnWrap) return;
+    const _start = Proto.start, _stop = Proto.stop;
+    Proto.start = function(){
+      if (!window.__ctfSoundOn) {
+        try{ if (typeof _stop === 'function') _stop.call(this, this.context?.currentTime); }catch(e){}
+        return;
+      }
+      return _start.apply(this, arguments);
+    };
+    Proto.__ctfSoundOnWrap = true;
+  })();
+
+  // Respect __ctfSoundOn for any Sound.event calls
+  (function(){
+    let _S = window.Sound || {};
+    function wrapEvent(){
+      const orig = (typeof _S.event === 'function') ? _S.event.bind(_S) : null;
+      _S.event = function(name){
+        if (!window.__ctfSoundOn) return; // block if muted
+        if (orig) { try{ return orig(name); }catch(e){} }
+      };
+    }
+    Object.defineProperty(window, 'Sound', {
+      configurable:true,
+      get(){ return _S; },
+      set(v){ _S = v || {}; try{ wrapEvent(); }catch(e){} }
+    });
+    try{ wrapEvent(); }catch(e){}
+  })();
+
+  // Auto-detect your top-right sound button by label text
+  function looksLikeSoundBtn(el){
+    const t=(el.textContent||'').toLowerCase();
+    const id=(el.id||'').toLowerCase();
+    const cls=(el.className||'').toLowerCase();
+    // Accept both explicit mute-names and label-based names
+    return id.includes('mute') || cls.includes('mute') || t.includes('sound on') || t.includes('muted');
+  }
+  function isLabelSoundOn(el){
+    const t=(el.textContent||'').toLowerCase();
+    // Your wording:
+    if (t.includes('sound on')) return true;
+    if (t.includes('muted'))    return false;
+    // fallback to aria/class
+    if (el.getAttribute && el.getAttribute('aria-pressed')==='true') return true;
+    if (el.classList && el.classList.contains('active')) return true;
+    return window.__ctfSoundOn; // keep current state
+  }
+
+  // Map clicks on the sound button to our global flag
+  document.addEventListener('click', function(ev){
+    const el = ev.target.closest && ev.target.closest('button, [role="button"], .btn');
+    if(!el) return;
+    if (!looksLikeSoundBtn(el)) return;
+    setTimeout(()=>{ setSoundOn( isLabelSoundOn(el) ); }, 0);
+  }, true);
+
+  // On startup, try to sync initial state from the button label if present
+  window.addEventListener('DOMContentLoaded', ()=>{
+    const guess = document.querySelector('header .right button, header .right .btn, button, [role="button"]');
+    if (guess && looksLikeSoundBtn(guess)) {
+      setSoundOn( isLabelSoundOn(guess) );
+    }
+  });
+})();
+</script>
+<script>
+// Wrap 🔥 in <span class="flame"> if not already, without breaking your existing toggle logic
+(function(){
+  const btn = document.getElementById('hookToggle');
+  if(!btn || btn.__flameWired) return;
+  // If text contains a fire emoji already, wrap first occurrence; else prepend one
+  const raw = btn.textContent;
+  const m = raw && raw.match(/(.*?)(\u{1F525})(.*)/u);
+  if (m){
+    const before = (m[1]||"").trim();
+    const after  = (m[3]||"").trim();
+    btn.innerHTML = (before? before+" " : "") + '<span class="flame">🔥</span>' + (after? " "+after : "");
+  } else {
+    btn.innerHTML = '<span class="flame">🔥</span> ' + (raw||"").trim();
+  }
+  btn.__flameWired = true;
+})();
+</script>
 </body>
 </html>
-
