@@ -1,765 +1,643 @@
 <!doctype html>
 <html lang="en">
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Crypto Tweet Factory — Stable Buttons</title>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>Crypto Tweet Factory — MERGED FINAL</title>
 <style>
-:root{--bg:#050708;--bg2:#081019;--panel:#0b1115;--line:#13212c;--text:#e6eef8;--muted:#8aa1b1;--neon:#4ade80;--blue:#60aaff;--btn:#0d151c;--btnLine:#0f1820;--copy:#cfeaff}
-:root.theme-neon{--bg:#020409;--bg2:#050b14;--panel:#071018;--line:#163242;--text:#e9f6ff;--muted:#9dc1d9;--neon:#5bffa1;--blue:#7ac2ff;--btn:#0a1420;--btnLine:#102133;--copy:#e6f2ff}
-*{box-sizing:border-box}body{margin:0;background:linear-gradient(180deg,var(--bg),var(--bg2));color:var(--text);font-family:Inter,system-ui,Segoe UI,Roboto,Arial;min-height:100vh;display:flex;align-items:flex-start;justify-content:center;padding:22px}
-.wrap{width:min(980px,96vw);background:radial-gradient(1200px 300px at -10% -10%, rgba(90,255,180,.06), transparent 60%),radial-gradient(1000px 280px at 110% 10%, rgba(96,170,255,.06), transparent 65%),linear-gradient(180deg, rgba(255,255,255,.03), rgba(255,255,255,.02));border:1px solid var(--line);border-radius:16px;padding:18px;box-shadow:0 12px 36px rgba(0,0,0,.35);position:relative}
-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}
-h1{margin:0;font-size:20px;color:var(--neon);text-shadow:0 0 12px rgba(91,255,161,.35)}
-.right{display:flex;gap:8px;align-items:center}
-.btn{border:none;border-radius:10px;padding:10px 16px;font-weight:800;cursor:pointer;font-size:15px}
-.btn.gen{background:var(--neon);color:#001c09}.btn.tweet{background:var(--blue);color:#001426}
-.btn.copy,.btn.back,.btn.small,.btn.toggle{background:transparent;border:1px solid var(--line);color:var(--copy);background:var(--btn)}
-.input{flex:1 1 360px;background:var(--btn);color:#dfe8f4;border:1px solid var(--btnLine);padding:10px 12px;border-radius:12px;outline:none}
-select{background:#0b141b;color:#dfe8f4;border:1px solid var(--line);padding:8px 10px;border-radius:10px;font-weight:700}
-#tweet-box{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:24px;margin:12px 0 6px;text-align:center;font-size:18px;line-height:1.45;min-height:160px;display:flex;align-items:center;justify-content:center}
-.actions{display:flex;gap:8px;flex-wrap:wrap;justify-content:center;margin-top:8px}
-.countdown{margin-top:6px;text-align:center;color:#9ec1ff;font-size:13px;min-height:18px}
-.toast{position:fixed;bottom:28px;left:50%;transform:translateX(-50%);background:#0e1b13;border:1px solid #1b3927;padding:10px 20px;border-radius:12px;color:#9fffb9;font-weight:600;box-shadow:0 0 15px rgba(74,222,128,.3);opacity:0;transition:opacity .25s,transform .25s;z-index:9999}
-.brand{position:fixed;left:18px;bottom:18px;color:var(--neon);opacity:.85;font-weight:800;letter-spacing:.3px;font-size:12px;background:#0f1a12;border:1px solid #1b3927;border-radius:10px;padding:6px 10px}
-.vwrap{display:flex;align-items:center;gap:10px;margin:6px 0 2px}
-.vbar{flex:1;height:10px;border-radius:999px;background:#0c1418;border:1px solid #153224;position:relative;overflow:hidden}
-.vfill{position:absolute;left:0;top:0;bottom:0;width:0%;background:linear-gradient(90deg,#ff5151,#ffd257,#7dff7d,#60aaff);transition:width .3s ease}
-.vnum{min-width:56px;text-align:right;font-weight:900;color:#cfeaff}
-.vtips{font-size:12px;color:var(--muted);margin-top:2px;text-align:center}
-#auto.boost{position:relative;background:#0e1620;border:1px solid #1b2f45;color:#cfeaff;box-shadow:0 0 0 2px rgba(96,170,255,.28),0 0 26px rgba(96,170,255,.45),inset 0 0 18px rgba(96,170,255,.18);animation:autoPulseBlue 1.6s ease-in-out infinite}
-@keyframes autoPulseBlue{0%,100%{box-shadow:0 0 0 2px rgba(96,170,255,.24),0 0 20px rgba(96,170,255,.35),inset 0 0 14px rgba(96,170,255,.14)}50%{box-shadow:0 0 0 2px rgba(96,170,255,.36),0 0 32px rgba(96,170,255,.55),inset 0 0 22px rgba(96,170,255,.24)}}
-.hookToggle{background:#0f1a12;border:1px solid #1b3927;color:#bfffd3;border-radius:10px;padding:8px 12px;font-weight:800;cursor:pointer}
-.hookToggle.active{background:#16321f;border-color:#2a5b3a;box-shadow:0 0 0 2px rgba(74,222,128,.25),0 0 22px rgba(74,222,128,.35)}
-.themeToggle{background:transparent;border:1px solid var(--line);color:var(--copy);border-radius:999px;padding:8px 14px;font-weight:800;cursor:pointer}
-/* Sidebar Rank */
-#leftSidebar{position:fixed;left:-260px;top:22px;z-index:40;width:260px;transition:left .25s ease}
-#leftSidebar[data-open=true]{left:12px}
-#sidebarCard{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:12px;box-shadow:0 10px 30px rgba(0,0,0,.35);max-height:calc(100vh - 44px);overflow:auto}
-#sideHandle{position:fixed;left:0;top:120px;z-index:41;background:#0f1a12;border:1px solid #1b3927;border-left:none;border-radius:0 10px 10px 0;padding:10px 8px;color:#9fffb9;font-weight:800;cursor:pointer;box-shadow:0 4px 14px rgba(0,0,0,.35)}
-</style>
-<script>
-try{if(localStorage.getItem('ctf_theme')==='neon'){document.documentElement.classList.add('theme-neon')}}catch(e){}
-</script>
-<style>
-/* Dark caret for selects (speed + length), also on hover/focus */
-select,
-select:hover,
-select:focus,
-#length,
-#length:hover,
-#length:focus,
-.speedSelect,
-.speedSelect:hover,
-.speedSelect:focus {
-  -webkit-appearance: none;
-  appearance: none;
-  background-color: #0b141b;
-  color: #dfe8f4;
-  border: 1px solid var(--line);
-  padding-right: 38px;
-  background-image:
-    url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24'><path fill='%23202a34' d='M7 10l5 5 5-5z'/></svg>");
-  background-repeat: no-repeat;
-  background-position: right 10px center;
-  background-size: 14px;
+:root{
+  --bg:#050a0f; --panel:#0b1115; --line:#13212c; --text:#e6eef8; --muted:#8aa1b1;
+  --neon:#00ffae; --neon2:#00c8ff; --good:#77ffcc; --blue:#60aaff; --warn:#ffb86b;
 }
-select::-ms-expand { display: none; }
-select:focus, #length:focus, .speedSelect:focus {
-  outline: none;
-  box-shadow: 0 0 0 2px rgba(96,170,255,0.15);
-}
-</style>
-<style>
-/* Hook Boost — match Auto Mode: green neon, breathing light, background parity */
-#hookToggle{
-  position: relative;
-  overflow: visible;
-  background: #0b1115 !important;         /* same panel tone */
-  color: #cfeaff !important;
-  border: 1px solid #13212c !important;    /* same border as panel */
-}
-/* Flame wrapper will be injected if not present */
-#hookToggle .flame{
-  display:inline-block;
-  transition: transform .18s ease, filter .18s ease, opacity .18s ease;
-  filter: drop-shadow(0 0 0 rgba(74,222,128,0));
-  opacity: .9;
+*{box-sizing:border-box}
+html,body{height:100%}
+body{
+  margin:0;background:
+    radial-gradient(1100px 520px at 15% -10%, rgba(0,255,174,.09), transparent 70%),
+    radial-gradient(900px 600px at 90% 0%, rgba(0,200,255,.07), transparent 70%),
+    var(--bg);
+  color:var(--text); font-family:Inter,system-ui,Segoe UI,Roboto,Arial,sans-serif;
+  display:flex; gap:16px;
 }
 
-/* ACTIVE: green glow like Auto + subtle breathing/flicker */
-#hookToggle.active{
-  /* inner ring + outer glow; tuned to resemble Auto mode, but green */
-  box-shadow:
-    0 0 0 2px rgba(74,222,128,.22) inset,
-    0 0 22px rgba(74,222,128,.48),
-    0 0 46px rgba(74,222,128,.32);
-  border-color: #1e3b2a !important;
-  background-image: radial-gradient(130% 130% at 50% -20%, rgba(74,222,128,.18), transparent 60%);
-  animation: hookPulse 2.1s ease-in-out infinite;
-}
-/* Beam under the button (same vibe as Auto) */
-#hookToggle.active::after{
-  content:"";
-  position:absolute;
-  inset:auto -18px -14px -18px;
-  height:20px;
-  background: radial-gradient(50% 120% at 50% 0%,
-    rgba(74,222,128,.36),
-    rgba(74,222,128,.10) 68%,
-    transparent 85%);
-  filter: blur(10px);
-  pointer-events:none;
-  border-radius: 0 0 18px 18px;
-  animation: hookBeam 1.8s ease-in-out infinite;
-}
+/* Left rail */
+.left-rail{ width:300px; min-width:280px; padding:14px; position:sticky; top:0; height:100dvh;
+  background:linear-gradient(180deg, rgba(255,255,255,.03), rgba(255,255,255,.02));
+  border-right:1px solid var(--line); z-index:1; overflow:auto}
+.card{ background:var(--panel); border:1px solid var(--line); border-radius:14px; padding:14px;
+  box-shadow:0 10px 30px rgba(0,0,0,.35); margin-bottom:12px}
+.rank-title{display:flex;align-items:center;gap:10px;font-weight:800}
+.rank-row{margin-top:8px;font-size:14px;color:var(--muted)}
+.progress{margin-top:10px; background:#0d151c; border:1px solid #12222d; border-radius:999px; height:12px; overflow:hidden}
+.progress > span{display:block; height:100%; width:0%; background:linear-gradient(90deg,var(--neon),var(--neon2)); box-shadow:0 0 16px rgba(0,255,174,.45)}
 
-/* Flame flicker + gentle drift when active */
-#hookToggle.active .flame{
-  filter: drop-shadow(0 0 6px rgba(74,222,128,.55)) drop-shadow(0 0 16px rgba(74,222,128,.35));
-  text-shadow: 0 0 6px rgba(74,222,128,.45), 0 0 14px rgba(74,222,128,.35);
-  animation:
-    flameDrift 1.3s ease-in-out infinite,
-    flameFlicker 900ms steps(2,end) infinite;
-}
+.small-actions{display:flex;gap:8px;margin-top:10px}
+.btn.small{padding:6px 10px;border-radius:10px;font-size:12px}
 
-/* Keyframes — pulse on the button, beam shimmer, flame motion/flicker */
-@keyframes hookPulse {
-  0%,100% { box-shadow:
-    0 0 0 2px rgba(74,222,128,.22) inset,
-    0 0 18px rgba(74,222,128,.44),
-    0 0 36px rgba(74,222,128,.28);
-  }
-  50% { box-shadow:
-    0 0 0 2px rgba(74,222,128,.27) inset,
-    0 0 26px rgba(74,222,128,.60),
-    0 0 56px rgba(74,222,128,.38);
-  }
+/* Quests */
+.quest{background:#0e151a;border:1px solid #17242f;border-radius:10px;padding:10px;margin:8px 0}
+.quest .head{display:flex;justify-content:space-between;gap:8px;align-items:center}
+.quest .name{font-weight:800}
+.quest .reward{color:#bfeadf;font-size:12px}
+.qbar{margin-top:8px;background:#0d151c;border:1px solid #12222d;border-radius:999px;height:10px;overflow:hidden}
+.qbar > span{display:block;height:100%;width:0;background:linear-gradient(90deg,#77ffcc,#60aaff)}
+.q-done{opacity:.85;border-color:#245336}
+.q-countdown{margin-top:8px;font-size:12px;color:#9ec1ff;text-align:center}
+
+/* Tokens */
+.token-row{display:flex;align-items:center;justify-content:space-between;gap:8px;border-bottom:1px solid var(--line);padding:8px 0}
+.token-row:last-child{border-bottom:none}
+.token-sym{font-weight:900;letter-spacing:.5px}
+.token-chg.up{color:#77ffcc}
+.token-chg.down{color:#ff9f9f}
+.token-actions{display:flex;gap:6px}
+.badge{display:inline-block;padding:2px 8px;border:1px solid #203140;border-radius:999px;color:#a8fbe2;font-size:11px;}
+
+/* Main */
+.main{flex:1; padding:16px 20px; max-width:1100px; margin:0 auto; position:relative; z-index:1;}
+.topbar{display:flex; align-items:center; justify-content:space-between; gap:10px; margin-bottom:10px;}
+.status-left{font-weight:800;color:#a8fbe2}
+.toolbar-right{display:flex; gap:8px; align-items:center; flex-wrap:wrap}
+.btn{
+  background:#0e1a22; border:1px solid #203140; color:#cbecff;
+  padding:9px 14px; border-radius:12px; font-weight:800; cursor:pointer;
+  transition:transform .15s ease, box-shadow .15s ease, background .2s ease;
 }
-@keyframes hookBeam {
-  0%,100% { opacity:.70; transform: translateY(0) scaleX(1) }
-  50%     { opacity:.42; transform: translateY(1px) scaleX(1.06) }
+.btn:hover{transform:translateY(-1px); box-shadow:0 8px 22px rgba(0,200,255,.18)}
+.btn:active{transform:translateY(0)}
+.btn.primary{background:linear-gradient(90deg,var(--neon),var(--neon2)); color:#002018; border:none}
+.btn.blue{background:var(--blue); color:#001426; border:none}
+.btn.ghost{background:transparent}
+.glow-toggle{background:#0f1c22;border:1px solid #203140;color:#cbecff;position:relative}
+.glow-toggle.active{
+  border-color:#1e3b2a !important;
+  box-shadow:0 0 0 2px rgba(0,255,174,.22) inset, 0 0 22px rgba(0,255,174,.5), 0 0 46px rgba(0,255,174,.32);
+  background-image:radial-gradient(120% 120% at 50% -20%, rgba(0,255,174,.16), transparent 62%);
+  animation:pulse 2.1s ease-in-out infinite;
 }
-@keyframes flameDrift {
-  0%   { transform: translate(0, 0) rotate(0deg) scale(1) }
-  25%  { transform: translate(0.5px, -0.6px) rotate(-3deg) scale(1.05) }
-  50%  { transform: translate(0, -0.9px) rotate(1.2deg) scale(1.02) }
-  75%  { transform: translate(-0.6px, -0.5px) rotate(-1.6deg) scale(1.05) }
-  100% { transform: translate(0, 0) rotate(0deg) scale(1) }
+@keyframes pulse{0%,100%{box-shadow:0 0 0 2px rgba(0,255,174,.2) inset, 0 0 18px rgba(0,255,174,.42), 0 0 36px rgba(0,255,174,.26)}50%{box-shadow:0 0 26px rgba(0,255,174,.62), 0 0 56px rgba(0,255,174,.4)}}
+#hookToggle .flame{display:inline-block; transition: filter .2s ease, transform .2s ease; filter: drop-shadow(0 0 0 rgba(0,255,174,0)); margin-right:6px}
+#hookToggle.active .flame{ filter: drop-shadow(0 0 8px rgba(0,255,174,.7)); animation: flameFlicker 900ms steps(2,end) infinite, flameDrift 1.3s ease-in-out infinite; }
+@keyframes flameFlicker{0%{opacity:.92}50%{opacity:.76}100%{opacity:.92}}
+@keyframes flameDrift{0%{transform:translate(0,0)}50%{transform:translate(.5px,-.6px)}100%{transform:translate(0,0)}}
+
+.title{text-align:center; font-weight:900; letter-spacing:.6px; margin:6px 0 14px 0; text-shadow:0 0 18px rgba(0,255,174,.15), 0 0 24px rgba(0,200,255,.1);}
+
+/* Tweet card */
+.content-card{background:var(--panel); border:1px solid var(--line); border-radius:16px; padding:18px; box-shadow:0 14px 36px rgba(0,0,0,.35); max-width:820px; margin:0 auto;}
+#tweet{background:#0d151c; border:1px solid #10202a; border-radius:12px; padding:18px; min-height:110px; font-size:20px; line-height:1.45; text-align:center;}
+.controls{display:flex; justify-content:center; gap:10px; margin-top:12px; flex-wrap:wrap}
+.score-wrap{display:flex;align-items:center;justify-content:center; gap:10px; margin:16px 0 6px}
+.score-bar{width:360px; height:12px; background:#0d151c; border:1px solid #12222d; border-radius:999px; overflow:hidden}
+.score-bar > span{display:block; height:100%; width:0%; background:linear-gradient(90deg,#ff6b6b,#ffd36e,#77ffcc); box-shadow:0 0 14px rgba(0,255,174,.35)}
+.score-val{font-weight:900; letter-spacing:.8px}
+.sub-quote{text-align:center;color:#9ec1ff;font-size:12px;min-height:18px;margin-top:4px}
+
+/* Auto */
+.auto-wrap{display:flex; gap:8px; justify-content:center; align-items:center; margin:10px 0 4px}
+.select{
+  background:#0e1a22; color:#cbecff; border:1px solid #203140; border-radius:12px; padding:8px 10px;
+  appearance:none;
+  background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24'><path fill='%23182632' d='M7 10l5 5 5-5z'/></svg>");
+  background-repeat:no-repeat; background-position:right 10px center; padding-right:34px;
 }
-@keyframes flameFlicker {
-  0%   { opacity: .92 }
-  50%  { opacity: .76 }
-  100% { opacity: .92 }
+.select:focus{outline:2px solid #1f3644}
+.countdown{min-width:120px; text-align:center; color:#9ad7ff; font-size:13px}
+
+/* Footer */
+.footer{margin-top:18px; display:flex; align-items:center; justify-content:space-between; gap:10px; font-size:13px; color:#a9c7d4}
+.copyAddr{color:var(--good); cursor:pointer}
+.copyAddr:hover{text-decoration:underline}
+.brand{opacity:.9}
+
+/* Modals + Toast */
+.modal-overlay{position:fixed; inset:0; background:rgba(0,0,0,.6); display:none; align-items:center; justify-content:center; z-index:1000;}
+.modal{width:min(760px,92vw); background:var(--panel); border:1px solid var(--line); border-radius:14px; box-shadow:0 24px 80px rgba(0,0,0,.55)}
+.modal header{display:flex; justify-content:space-between; align-items:center; padding:12px 14px; border-bottom:1px solid var(--line)}
+.modal .body{padding:14px}
+.toast{position:fixed;bottom:26px;left:50%;transform:translateX(-50%);background:#0e1b13;border:1px solid #1b3927;padding:10px 20px;border-radius:12px;color:#9fffb9;font-weight:800;box-shadow:0 0 15px rgba(74,222,128,.3);opacity:0;transition:opacity .25s,transform .25s;z-index:2002}
+
+/* Upgrade button (gold) */
+.upgBtn{ 
+  background: linear-gradient(90deg,#ffd465,#ffb52e);
+  color:#3a2600; border:1px solid #7a5200; border-radius:12px;
+  padding:9px 14px; font-weight:900; box-shadow:0 8px 22px rgba(255,191,71,.28), inset 0 0 0 1px rgba(255,255,255,.12);
 }
+.upgBtn:hover{ box-shadow:0 10px 28px rgba(255,191,71,.42); transform: translateY(-1px); }
+.upgBtn:active{ transform: translateY(0); }
+
+/* Premium badge */
+.premBadge{background:#223a20;color:#bfffd3;border:1px solid #12321a;padding:6px 10px;border-radius:10px;font-weight:800;}
 </style>
 </head>
 <body>
-<div id="sideHandle" title="Toggle Tweet Rank">🏅</div>
-<div id="leftSidebar" data-open="true"><div id="sidebarCard">
-  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px"><strong style="color:#9fe6b8">🏅 Tweet Rank</strong><button id="toggleSidebar" class="btn small" style="padding:6px 10px">◀</button></div>
-  <div id="rankNow" style="display:flex;align-items:center;gap:8px;margin-bottom:10px"><div id="rankBadgeBig" style="font-size:22px">🥉</div><div><div id="rankTitle" style="font-weight:800">Bronze I</div><div id="rankXPText" style="font-size:12px;color:#8aa1b1">0 / 10 XP</div></div></div>
-  <div class="rankBar" style="height:10px;border-radius:999px;background:#0c1418;border:1px solid #153224;position:relative;overflow:hidden;margin-bottom:8px"><div id="rankFill" style="position:absolute;left:0;top:0;bottom:0;width:0%;background:linear-gradient(90deg,#ffd257,#7dff7d,#60aaff)"></div></div>
-  <div id="rankNext" style="font-size:12px;color:#9ec1ff;margin-bottom:6px">Next: Silver I at 10 XP</div><div id="rankDbg" style="font-size:11px;color:#86aad8;margin-top:0;opacity:.8"></div>
-  <div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:8px"><button id="resetRank" class="btn small" title="Reset local XP">Reset</button><button id="exportRank" class="btn small" title="Export XP">Export</button><button id="importRank" class="btn small" title="Import XP">Import</button></div>
-</div></div>
 
-<div class="wrap">
-  <header><h1>Crypto Tweet Factory</h1><div class="right">
-    <button id="analyzeBtn" class="btn small" title="Analyze your text">🧪 Analyze</button>
-    <button id="hookToggle" class="hookToggle" title="Boost hook & punch">🔥 Hook Boost OFF</button>
-    <button id="themeBtn" class="themeToggle">Theme: Dark</button>
-    <button id="muteBtn" class="themeToggle">🔊 Sound On</button>
-  </div></header>
-
-  <div class="topbar" style="display:flex;gap:8px;flex-wrap:wrap;margin:10px 0">
-    <input id="search" class="input" placeholder="Type a keyword (e.g., PEPE, Solana, Elon)">
-    <select id="length"><option value="short" selected>Short (≤150)</option><option value="long">Long (200–250)</option></select>
+<!-- LEFT COLUMN -->
+<aside class="left-rail">
+  <div class="card" id="rankCard">
+    <div class="rank-title"><span class="badge">🏅</span> <span><strong>Tweet Rank</strong></span></div>
+    <div class="rank-row"><strong>Rank:</strong> <span id="rankName">Normie</span></div>
+    <div class="rank-row"><strong>XP:</strong> <span id="xpVal">0</span> / <span id="xpNext">200</span></div>
+    <div class="progress"><span id="xpBar"></span></div>
+    <div class="rank-row"><strong>Streak:</strong> <span id="streakVal">0</span> days</div>
+    <div class="small-actions">
+      <button id="resetRank" class="btn small ghost" type="button">↺ Reset Rank</button>
+    </div>
   </div>
 
-  <div id="tweet-box">Click “Generate” to create a tweet</div>
-  <div class="vwrap" id="vwrap" style="display:none"><div class="vbar"><div id="vfill" class="vfill"></div></div><div id="vnum" class="vnum">0</div></div>
-  <div class="vtips" id="vtips" style="display:none">Tip: keep it punchy (110–180 chars), max 1 emoji.</div>
-  <div class="vtips" id="vquote" style="display:none;font-style:italic;opacity:.9"></div>
-  <div class="countdown" id="countdown"></div>
-
-  <div class="actions">
-    <button id="back" class="btn back">⬅ Back</button>
-    <button id="generate2" class="btn gen">Generate</button>
-    <button id="tweet" class="btn tweet">Tweet</button>
-    <button id="copy" class="btn copy">Copy</button>
-    <button id="auto" class="btn toggle">Auto Mode : OFF</button>
-    <select id="speed" class="input" style="max-width:120px"><option value="3000">3s</option><option value="5000" selected>5s</option><option value="10000">10s</option><option value="15000">15s</option></select>
-    <button id="shareCard" class="btn copy">Share Card</button>
+  <div class="card" id="questsCard">
+    <div class="rank-title"><span class="badge">📅</span> <span><strong>Daily Quests</strong></span></div>
+    <div id="questsWrap"></div>
+    <div class="q-countdown" id="questsCountdown">Resets in --:--:--</div>
   </div>
-</div>
 
-<!-- Analyzer Modal -->
-<div id="anModal" class="modalOverlay" style="position:fixed;inset:0;background:rgba(0,0,0,.6);display:none;align-items:center;justify-content:center;z-index:50">
-  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="anTitle" style="width:min(780px,94vw);max-height:80vh;overflow:auto;background:#0b1115;border:1px solid #13212c;border-radius:14px;box-shadow:0 30px 80px rgba(0,0,0,.55)">
-    <header style="display:flex;justify-content:space-between;align-items:center;padding:14px;border-bottom:1px solid #13212c"><h2 id="anTitle" style="margin:0;font-size:16px;color:#9fe6b8">Tweet Analyzer</h2><button id="anClose" class="btn small">✖</button></header>
-    <div class="body" style="padding:12px">
-      <textarea id="anText" placeholder="Paste your tweet here..." style="width:100%;min-height:120px;padding:12px;border-radius:10px;border:1px solid #13212c;background:#07121a;color:#dfe8f4"></textarea>
-      <div style="display:flex;gap:8px;margin-top:8px"><button id="anRun" class="btn gen">Analyze</button><button id="anUse" class="btn copy">Use in generator</button></div>
-      <div id="anResult" style="margin-top:10px;line-height:1.45;color:#cfeaff"></div>
+  <div class="card" id="memesCard">
+    <div class="rank-title">
+      <span class="badge">🚀</span> <span><strong>Realtime Meme Coins</strong></span>
+      <span class="badge" id="autoTokensBadge" style="margin-left:auto;cursor:pointer" title="Auto rotate every 15s">Auto: OFF</span>
+    </div>
+    <div style="font-size:12px;color:#9ec1ff;margin:6px 0 8px 0">Local mock (no API). Click a coin to toggle in your tweet.</div>
+    <div id="tokensWrap"></div>
+    <div style="display:flex;gap:8px;margin-top:10px">
+      <button id="refreshTokens" class="btn small" type="button">↻ Refresh</button>
+      <button id="insertTopToken" class="btn small" type="button">➕ Add/Remove Top Coin</button>
+    </div>
+  </div>
+</aside>
+
+<!-- MAIN -->
+<main class="main">
+  <div class="topbar">
+    <div class="status-left">🏆 Rank: <span id="rankNameTop">Normie</span> | XP: <span id="xpTop">0</span></div>
+    <div class="toolbar-right">
+      <button id="hookToggle" class="btn glow-toggle" type="button"><span class="flame">🔥</span> Hook Boost</button>
+      <button id="analyzeBtn" class="btn" type="button">🔍 Analyze</button>
+      <button id="packsBtn" class="btn" type="button">🧠 Smart Packs</button>
+      <button id="themeBtn" class="btn" type="button">🌈 Theme</button>
+      <button id="soundBtn" class="btn" type="button">🔊 Sounds On</button>
+      <span id="premBadge" class="premBadge" style="display:none">⭐ Premium</span>
+      <button id="openUpgrade" class="upgBtn" type="button">💎 Upgrade</button>
+      <!-- Music button will be injected here -->
+    </div>
+  </div>
+
+  <h2 class="title">⚡ Crypto Tweet Factory ⚡</h2>
+
+  <section class="content-card">
+    <div id="tweet">Tap “Generate Tweet” to get started</div>
+    <div class="controls">
+      <button id="genBtn" class="btn primary" type="button">🔁 Generate Tweet</button>
+      <button id="tweetBtn" class="btn blue" type="button">📢 Tweet Now</button>
+      <button id="copyBtn" class="btn" type="button">📋 Copy</button>
+    </div>
+
+    <div class="score-wrap">
+      <div class="score-bar"><span id="scoreFill"></span></div>
+      <div class="score-val"><span id="scoreVal">0</span>🔥 Viral Score</div>
+    </div>
+    <div class="sub-quote" id="subQuote"></div>
+
+    <div class="auto-wrap">
+      <button id="autoBtn" class="btn glow-toggle" type="button">Auto Mode : OFF</button>
+      <select id="autoSpeed" class="select">
+        <option value="3000">3s</option>
+        <option value="5000" selected>5s</option>
+        <option value="10000">10s</option>
+        <option value="15000">15s</option>
+      </select>
+      <div class="countdown" id="countdown"></div>
+    </div>
+  </section>
+
+  <div class="footer">
+    <div>Tip SOL : <span id="addrShort" class="copyAddr" title="Click to copy">77M...Rjv</span><span id="addrFull" style="display:none">77M7waPc3o6uEpwHxnNRzJ9Ga47gnFPZVJKu3AP1mRjv</span></div>
+    <div class="brand">Created by <strong>@setrixx19</strong></div>
+  </div>
+</main>
+
+<!-- Analyze Modal -->
+<div id="overlay" class="modal-overlay" aria-hidden="true">
+  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="anTitle">
+    <header>
+      <strong id="anTitle">Analyze Boost Insights</strong>
+      <button id="closeModal" class="btn small" type="button">✖ Close</button>
+    </header>
+    <div class="body">
+      <div id="analysisText" style="line-height:1.55"></div>
     </div>
   </div>
 </div>
 
-<!-- Tweet Verify Modal -->
-<div id="tvModal" style="position:fixed;inset:0;display:none;align-items:center;justify-content:center;background:rgba(0,0,0,.6);z-index:140">
-  <div style="width:min(520px,92vw);background:#0b1115;border:1px solid #13212c;border-radius:14px;padding:16px;box-shadow:0 30px 80px rgba(0,0,0,.55)">
-    <div style="font-weight:800;color:#9fe6b8;margin-bottom:6px">Verify your Tweet</div>
-    <div style="color:#cfeaff;margin-bottom:10px">Paste the public URL of your tweet (e.g. https://x.com/yourname/status/1234567890). Each unique tweet gives +1 XP.</div>
-    <input id="tvInput" placeholder="https://x.com/yourname/status/1234567890" style="width:100%;padding:10px;border-radius:10px;border:1px solid #13212c;background:#07121a;color:#dfe8f4;margin-bottom:10px" />
-    <div id="tvStatus" style="min-height:18px;font-size:12px;color:#8aa1b1;margin-bottom:8px"></div>
-    <div style="display:flex;gap:8px;justify-content:flex-end"><button id="tvCancel" class="btn small">Cancel</button><button id="tvOk" class="btn gen">Verify</button></div>
+<!-- Upgrade Modal -->
+<div id="upgradeOverlay" class="modal-overlay" aria-hidden="true">
+  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="upgTitle">
+    <header>
+      <strong id="upgTitle">Upgrade to Premium</strong>
+      <button id="upgClose" class="btn small" type="button">Close</button>
+    </header>
+    <div class="body">
+      <div><strong>Premium unlocks:</strong></div>
+      <ul style="margin:6px 0 0 18px;line-height:1.45">
+        <li>Smart Tweet Packs (3 ideas per click)</li>
+        <li>Analyze Boost: deeper tips</li>
+        <li>Faster Auto Mode (1–2s)</li>
+      </ul>
+      <hr style="border:none;border-top:1px solid #3b2a10;margin:10px 0">
+      <div style="margin:10px 0">Optional tip: send <strong>0.1 SOL</strong> and paste TXID to unlock locally.</div>
+      <div style="font-family:monospace;color:#ffd465">77M7waPc3o6uEpwHxnNRzJ9Ga47gnFPZVJKu3AP1mRjv</div>
+      <input id="upgTxid" placeholder="Paste TXID…" style="width:100%;padding:10px;border-radius:10px;border:1px solid #3b2a10;background:#0b0a06;color:#f6e2bb;margin:10px 0" />
+      <div style="display:flex;gap:8px;justify-content:flex-end">
+        <button id="upgMark" class="upgBtn" type="button">Mark as Paid</button>
+      </div>
+    </div>
   </div>
 </div>
 
-<canvas id="confetti" style="position:fixed;inset:0;pointer-events:none;z-index:5"></canvas>
-<button id="tipMini" class="btn small" style="position:fixed;left:18px;bottom:58px;z-index:6;background:#10321f;border:1px solid #1b5a39;color:#bfffd3;padding:8px 12px;border-radius:10px;box-shadow:0 6px 16px rgba(0,0,0,.35)">💰 Tip</button>
-<div class="brand">Created by @setrixx19</div>
-
 <script>
-// Utility
-const $=id=>document.getElementById(id);
-function toast(msg){const t=document.createElement('div');t.className='toast';t.textContent=msg;document.body.appendChild(t);requestAnimationFrame(()=>{t.style.opacity='1';t.style.transform='translate(-50%,0)'});setTimeout(()=>{t.style.opacity='0';t.style.transform='translate(-50%,6px)'},1700);setTimeout(()=>t.remove(),2100)}
+/* ---------- Helpers ---------- */
+const el = id => document.getElementById(id);
+const LS = k => localStorage.getItem(k);
+const setLS = (k,v)=>localStorage.setItem(k,v);
+function toast(msg){
+  const t=document.createElement('div'); t.className='toast'; t.textContent=msg; document.body.appendChild(t);
+  requestAnimationFrame(()=>{t.style.opacity=1; t.style.transform='translate(-50%,0)';});
+  setTimeout(()=>{t.style.opacity=0; t.style.transform='translate(-50%,6px)';},1400);
+  setTimeout(()=>t.remove(),1800);
+}
 
-// Sound (smooth + mute)
-const Sound=(function(){
-  const AC=window.AudioContext||window.webkitAudioContext; let ctx; let muted=(localStorage.getItem('ctf_mute')==='1');
-  function ensure(){ctx=ctx||new AC();return ctx}
-  function updateBtn(){const b=$('muteBtn'); if(b) b.textContent = muted?'🔇 Muted':'🔊 Sound On'}
-  function setMuted(v){muted=!!v; try{localStorage.setItem('ctf_mute',muted?'1':'0')}catch(e){} updateBtn()}
-  function tone({freq=440,type='sine',attack=0.01,hold=0.08,release=0.2,gain=0.04,pan=0}){
-    if(muted) return; const ac=ensure(); const t0=ac.currentTime;
-    const o=ac.createOscillator(); const g=ac.createGain(); o.type=type; o.frequency.setValueAtTime(freq,t0);
+/* ---------- Sound (SFX) ---------- */
+const AC = window.AudioContext || window.webkitAudioContext; let ctx;
+function ensureCtx(){ if(!ctx){ try{ ctx=new AC(); }catch(e){ console.warn('AudioContext failed',e);} } return ctx; }
+let sfxOn = (LS('ctf_sfx_on') ?? 'true') === 'true';
+function playTone(freq, dur, type, gain){
+  if(!sfxOn) return;
+  try{ const ac=ensureCtx(); if(!ac) return; const t0=ac.currentTime; const o=ac.createOscillator(), g=ac.createGain();
+    o.type=type; o.frequency.setValueAtTime(freq,t0);
     g.gain.setValueAtTime(0,t0); o.connect(g); g.connect(ac.destination);
-    g.gain.linearRampToValueAtTime(gain,t0+attack); g.gain.setValueAtTime(gain,t0+attack+hold); g.gain.linearRampToValueAtTime(0.0001,t0+attack+hold+release);
-    o.start(t0); o.stop(t0+attack+hold+release+0.03);
-  }
-  function chord(freqs,opts={}){freqs.forEach(f=>tone({freq:f,...opts}))}
-  function event(name){
-    if(muted) return;
-    if(name==='generate') chord([392,494], {type:'sine',attack:0.01,hold:0.08,release:0.35,gain:0.035});
-    else if(name==='tweet') chord([523,659],{type:'sine',attack:0.01,hold:0.08,release:0.35,gain:0.035});
-    else if(name==='copy') tone({freq:780,type:'sine',attack:0.005,hold:0.05,release:0.14,gain:0.03});
-    else if(name==='toggleOn')  chord([880], {type:'square',attack:0.004,hold:0.03,release:0.08,gain:0.035});
-    else if(name==='toggleOff') chord([520], {type:'square',attack:0.004,hold:0.02,release:0.07,gain:0.03});
-  }
-  return {event,setMuted,isMuted:()=>muted,updateBtn};
-})();
-
-// Theme
-(function(){const root=document.documentElement,btn=$('themeBtn'),KEY='ctf_theme';function apply(theme){root.classList.toggle('theme-neon',theme==='neon');btn.textContent=theme==='neon'?'Theme: Neon':'Theme: Dark';localStorage.setItem(KEY,theme)}const saved=localStorage.getItem(KEY)||'dark';apply(saved);btn.onclick=()=>apply(root.classList.contains('theme-neon')?'dark':'neon')})();
-
-// Confetti
-(function(){const c=$('confetti'),ctx=c.getContext('2d');function resize(){c.width=innerWidth;c.height=innerHeight}addEventListener('resize',resize);resize();function burst(){const parts=[];for(let i=0;i<120;i++){parts.push({x:innerWidth/2,y:innerHeight/2,vx:(Math.random()-0.5)*6,vy:(Math.random()-0.7)*7-2,g:0.12+Math.random()*0.06,s:2+Math.random()*3,a:1,col:`hsl(${Math.floor(120+Math.random()*120)},100%,70%)`})}let t=0;(function frame(){ctx.clearRect(0,0,c.width,c.height);parts.forEach(p=>{p.x+=p.vx;p.y+=p.vy;p.vy+=p.g;p.a-=0.008;ctx.globalAlpha=Math.max(p.a,0);ctx.fillStyle=p.col;ctx.fillRect(p.x,p.y,p.s,p.s)});t++;if(t<200)requestAnimationFrame(frame);else ctx.clearRect(0,0,c.width,c.height)})()}window.__confettiBurst=burst})();
-
-// Generator data
-function bag(arr){let a=arr.slice();function sh(x){for(let i=x.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[x[i],x[j]]=[x[j],x[i]]}}sh(a);return{next(){if(a.length===0){a=arr.slice();sh(a)}return a.pop()}}}
-const banks={intros:["Honestly","Some days","Not gonna lie","Lately","Apparently","Real talk","Hot take","Confession","For real","Quick thought","Hear me out","Plot twist","Low key","Side note","Fun fact","Between us","Let’s be honest","Wild thought","No joke","Heads up"],qualifiers:["kinda","sorta","a bit","low key","high key","dead serious","no lie","for real though","apparently","not even kidding"],subjects:["the market","crypto","this coin","my portfolio","the charts","on chain chaos","my trades","my patience","these bags","gas fees","liquidity","volatility","whales","retail","trend reversals","sideways action","my cold wallet","my hot wallet","my pnl","funding rates","open interest","sentiment","macro vibes","exit liquidity","alerts","leverage","DCA plans","weird spikes","bear traps","bull traps"],verbs:["keeps testing me","just wants chaos","never lets me rest","makes zero sense","is playing games","refuses to behave","does its own thing","spikes then dips","dumps then winks","trolls everyone","changes direction mid sip","fakes a breakout","fakes a breakdown","pretends to be rational","gaslights my strategy","ignores support and resistance","speedruns emotions","pings me at 3am"],reactions:["and I’m still here watching","and I pretend I understand","and I cannot even be mad","and somehow it is funny now","but I live for this","so I keep acting like it is the plan","and I am taking it personally","and I still set alerts","and I keep refreshing like it helps","so I put the phone face down","and I call it growth","and I promise I learned"],additives:["Coffee is doing the heavy lifting","Every dip feels like lore unlock","Green candles owe me an apology","Phone battery fears price alerts","Maybe the real bull run was patience","I blinked and missed three moves","Charts are roasting me politely","Probability said no and I said what if","My spreadsheet is judging me","I am narrating candles like a documentary","Touching grass soon promise","I muted notifications and caught FOMO"],micro:["I am coping in 4K","No lessons learned","We pretend it is strategy","This is fine","It is a lifestyle now","Timers do not help but I keep them","Maybe tomorrow behaves","I cannot look away","We all chose chaos","What a skill issue","I read five threads and got dumber"],fillers:[" and "," but "," so "," then "," yet "," still "," somehow "," anyway "],emojiSoft:["🙂","😅","🤝","🫠","📉","📈","🧠","🪙","📊"]};
-const bagIntro=bag(banks.intros),bagQual=bag(banks.qualifiers),bagSub=bag(banks.subjects),bagVerb=bag(banks.verbs),bagReact=bag(banks.reactions),bagAdd=bag(banks.additives);
-const rnd=a=>a[Math.floor(Math.random()*a.length)],clamp=(s,m)=>s.length>m?s.slice(0,m-1)+'…':s;const lastSub=[],lastAdd=[];const CD=6;
-function pickWithCooldown(next,hist){let a=0,v=next();while(hist.includes(v)&&a<10){v=next();a++}hist.push(v);if(hist.length>CD)hist.shift();return v}function maybeOneEmoji(){return Math.random()<0.22?" "+rnd(banks.emojiSoft):""}function filler(){return rnd(banks.fillers)}
-let hookBoost=false;
-function baseSentence(hookProb){
-  if(hookBoost)hookProb=Math.min(0.9,hookProb+0.35);
-  const intro=bagIntro.next()+(Math.random()<0.35?" "+bagQual.next():"");
-  const subj=pickWithCooldown(()=>bagSub.next(),lastSub);
-  const line=`${intro} ${subj} ${bagVerb.next()}${filler()}${bagReact.next()}`+(Math.random()<0.5?" "+pickWithCooldown(()=>bagAdd.next(),lastAdd):"");
-  const maybeHook=Math.random()<hookProb?rnd(["Breaking:","Note to self:","Hear me out:","Wild thought:","Update:","Plot twist:"])+" ":"";
-  return(maybeHook+line+maybeOneEmoji()).trim()
+    g.gain.linearRampToValueAtTime(gain,t0+0.01); g.gain.exponentialRampToValueAtTime(0.0001,t0+dur);
+    o.start(t0); o.stop(t0+dur+0.03);
+  }catch(e){ console.warn('playTone',e); }
 }
-function injectKeyword(s,kw){kw=(kw||"").trim();if(!kw)return s;if(Math.random()<0.55){return s.replace(/(this coin|crypto|the market|these bags|the charts|liquidity|volatility)/,m=>m+" "+kw)}return s+" "+kw}
-function expandToRange(s,min,max){while(s.length<min){s+=Math.random()<0.5?filler()+rnd(banks.micro):" "+rnd(banks.additives);if(s.length>max+20)break}return s.length>max?clamp(s,max):s}
-function sentence(len,hookProb=0.4,drift=0){let s=injectKeyword(baseSentence(hookProb),$('search').value);if(len==="long"){const baseTarget=200+Math.floor(Math.random()*51);const target=Math.max(200,Math.min(250,baseTarget+Math.floor(drift)));s=expandToRange(s,target,250);return s}else{return clamp(s,150)}}
+function genSound(){ playTone(290,.16,'sawtooth',0.05); }
+function tweetSound(){ playTone(980,.13,'triangle',0.045); }
+function clickOn(){ playTone(880,.11,'square',0.035); }
+function clickOff(){ playTone(520,.10,'square',0.035); }
+function rankUpSound(){
+  if(!sfxOn) return; try{ const ac=ensureCtx(); if(!ac) return; const t0=ac.currentTime; const notes=[660,880,990,1320];
+  notes.forEach((f,i)=>{ const o=ac.createOscillator(), g=ac.createGain();
+    o.type='triangle'; o.frequency.setValueAtTime(f,t0+i*0.08);
+    g.gain.setValueAtTime(0,t0+i*0.08); o.connect(g); g.connect(ac.destination);
+    g.gain.linearRampToValueAtTime(0.06, t0+i*0.08+0.01);
+    g.gain.exponentialRampToValueAtTime(0.0001, t0+i*0.08+0.18);
+    o.start(t0+i*0.08); o.stop(t0+i*0.08+0.22);
+  }); }catch(e){ console.warn('rankUp',e); }
+}
 
-// Viral score & UI
+/* ---------- Rank & XP ---------- */
+let hookOn=false, autoOn=false, autoTimer=null, countdownTimer=null, interval=5000;
+let xp=+(LS('ctf_xp')||0), streak=+(LS('ctf_streak')||0), lastRankName=LS('ctf_last_rank')||"Normie";
+
+const ranks=[
+  {name:"Normie", xp:0},
+  {name:"Trader", xp:200},
+  {name:"Meme Thinker", xp:500},
+  {name:"Meme Lord", xp:1000},
+  {name:"Chain Prophet", xp:2000},
+  {name:"Legendary", xp:4000}
+];
+function currentRank(){ let r=ranks[0], next=ranks[1]; for(let i=0;i<ranks.length;i++){ if(xp>=ranks[i].xp){ r=ranks[i]; next=ranks[i+1]||ranks[i]; } } return {r,next}; }
+function updateRankUI(playReward=false){
+  const {r,next}=currentRank();
+  el('rankName').textContent=r.name; el('rankNameTop').textContent=r.name;
+  el('xpVal').textContent=xp; el('xpTop').textContent=xp;
+  el('xpNext').textContent=next.xp;
+  const base=r.xp,goal=next.xp; const pct=Math.max(0,Math.min(100,Math.round(((xp-base)/(goal-base||1))*100)));
+  el('xpBar').style.width=pct+'%';
+  if (playReward && r.name !== lastRankName){ rankUpSound(); toast("Rank Up! 🎉 "+r.name); }
+  lastRankName=r.name; setLS('ctf_last_rank', lastRankName);
+}
+function saveProgress(){ setLS('ctf_xp',xp); setLS('ctf_streak',streak); }
+
+/* ---------- Viral Score & Tweets ---------- */
 function viralScore(text){
-  let score = 50;
-  const len = text.length;
-  const hasHook = /^(breaking:|note to self:|hear me out:|wild thought:|update:|plot twist:)/i.test(text);
-  const emojis = (text.match(/[\u{1F300}-\u{1FAFF}]/gu) || []).length;
-
-  if (len >= 110 && len <= 180) score += 22;
-  else if (len >= 80 && len < 110) score += 12;
-  else if (len > 180 && len <= 250) score += 8;
-  else score -= 6;
-
-  if (hasHook) score += 16; else score -= 2;
-
-  if (emojis === 1) score += 10;
-  else if (emojis >= 2) score -= 4;
-
-  if (/[!?]$/.test(text)) score += 2;
-  const kw = (document.getElementById('search')?.value || '').trim();
-  if (kw && new RegExp("\\\\b"+kw.replace(/[.*+?^${}()|[\\]\\\\]/g,'\\\\$&')+"\\\\b", 'i').test(text)) score += 2;
-
-  return Math.max(0, Math.min(100, Math.round(score)));
+  let s=42; const t=(text||"").trim(); const len=t.length;
+  if (len>=110 && len<=170) s+=14;
+  else if (len>=80 && len<110) s+=8;
+  else if (len>170 && len<=250) s+=6;
+  else if (len<60) s-=16;
+  else if (len>260) s-=14;
+  s += (Math.random()*16-8);
+  s=Math.max(0,Math.min(100,Math.round(s)));
+  return s;
 }
-function scoreTips(s){
-  if (s < 40) return "Tip: add a short hook and one emoji.";
-  if (s < 60) return "Tip: tighten length (110–180) and add one emoji.";
-  if (s < 80) return "Nice! Try a sharper hook or one punctuation hit.";
-  if (s < 90) return "Strong. Consider a cleaner close or subtle keyword.";
-  return "🔥 Looks viral. Ship it.";
+function updateScoreUI(v){
+  el('scoreFill').style.width=v+'%'; el('scoreVal').textContent=v;
+  const qLow=["Not bad — sharpen the hook.","Try a bolder statement.","Cleaner punchline might help."];
+  const qMid=["Solid — a little nudge and it pops.","Nice! Maybe add a tiny twist.","Good rhythm. Keep it snappy."];
+  const qHigh=["Spicy! Ship it.","This could slap on CT.","Vibes are viral. Send it."];
+  el('subQuote').textContent= v>70 ? qHigh[Math.floor(Math.random()*qHigh.length)] : v>40 ? qMid[Math.floor(Math.random()*qMid.length)] : qLow[Math.floor(Math.random()*qLow.length)];
 }
-function updateViralUI(){const el=$('tweet-box'),vwrap=$('vwrap'),vfill=$('vfill'),vnum=$('vnum'),vtips=$('vtips');const text=el.textContent.trim();if(!text){vwrap.style.display='none';vtips.style.display='none';$('vquote').style.display='none';return}const s=viralScore(text);vwrap.style.display='flex';vtips.style.display='block';vfill.style.width=s+'%';vnum.textContent=s;vtips.textContent=scoreTips(s);const quotesLow=["Every red candle writes a better story tomorrow.","Patience is a position too.","The dip is loud, the plan is quiet."],quotesMid=["Less noise, more signal.","Stay curious, stay kind, stay liquid.","Edge grows where comfort ends."],quotesHigh=["This one might fly—ship it.","Small wins compound into big ones.","Momentum loves confidence."];function pickQ(sc){if(sc<40)return quotesLow[Math.floor(Math.random()*quotesLow.length)];if(sc<70)return quotesMid[Math.floor(Math.random()*quotesMid.length)];return quotesHigh[Math.floor(Math.random()*quotesHigh.length)]}const qEl=$('vquote');qEl.style.display='block';qEl.textContent='“'+pickQ(s)+'”'}
-function glowReaction(){const box=$('tweet-box');const score=viralScore(box.textContent||"");let hue=score>80?140:score>60?120:score>40?40:0;box.style.boxShadow=`0 0 0 2px hsla(${hue},90%,55%,.28), 0 0 34px hsla(${hue},90%,60%,.5), inset 0 0 20px hsla(${hue},90%,60%,.18)`;setTimeout(()=>{box.style.boxShadow='';updateViralUI()},320)}
 
-// Rank
-(function(){const KEY='ctf_rank_xp_v2';const TIERS=[{name:'Bronze I',emoji:'🥉',at:0},{name:'Bronze II',emoji:'🥉',at:5},{name:'Bronze III',emoji:'🥉',at:10},{name:'Silver I',emoji:'🥈',at:15},{name:'Silver II',emoji:'🥈',at:25},{name:'Gold I',emoji:'🥇',at:40},{name:'Gold II',emoji:'🥇',at:60},{name:'Platinum',emoji:'💠',at:85},{name:'Diamond',emoji:'💎',at:120},{name:'Mythic',emoji:'🔥',at:180},{name:'Legend',emoji:'🐉',at:240},{name:'Eternal',emoji:'👑',at:320}];const badge=$('rankBadgeBig'),title=$('rankTitle'),xpText=$('rankXPText'),fill=$('rankFill'),nextText=$('rankNext'),dbg=$('rankDbg');function getXP(){try{return parseInt(localStorage.getItem(KEY)||'0',10)||0}catch{return 0}}function setXP(x){localStorage.setItem(KEY,String(Math.max(0,x|0)))}function findTier(xp){let idx=0;for(let i=0;i<TIERS.length;i++){if(xp>=TIERS[i].at)idx=i;else break}return{idx,t:TIERS[idx],next:TIERS[idx+1]||null}}function render(){const xp=getXP();const {t,next}=findTier(xp);badge.textContent=t.emoji;title.textContent=t.name;const base=t.at,top=next?next.at:(t.at+50);const pct=Math.max(0,Math.min(100,Math.round(((xp-base)/Math.max(1,(top-base)))*100)));fill.style.width=pct+'%';xpText.textContent=`${xp} / ${top} XP`;nextText.textContent=next?`Next: ${next.name} at ${next.at} XP`:`Max tier reached — keep flexing 🚀`;dbg.textContent=`tier=${t.name}, base=${base}, next=${next?next.name:'—'}, xp=${xp}`}window.__rank={getXP,setXP,render};$('resetRank').onclick=()=>{if(confirm('Reset your local Tweet Rank XP?')){setXP(0);render();toast('Rank reset ✅')}};$('exportRank').onclick=()=>{const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([String(getXP())],{type:'text/plain'}));a.download='tweet_rank_xp.txt';document.body.appendChild(a);a.click();a.remove()};$('importRank').onclick=()=>{const i=document.createElement('input');i.type='file';i.accept='text/plain';i.onchange=e=>{const f=e.target.files[0];if(!f)return;const r=new FileReader();r.onload=()=>{const v=parseInt(r.result||'0',10)||0;setXP(Math.max(0,v));render();toast('Rank imported ✅')};r.readAsText(f)};i.click()};render()})();
+const intros=["Honestly","Some days","Tell me why","Apparently","It’s wild that","Not gonna lie","Low-key","Lately","Real talk","Confession:"];
+const subjects=["crypto","this market","my portfolio","these charts","this coin","the timeline","my watchlist","the memecoins","the whales","the vibes"];
+const actions=["keeps surprising me","just wants drama","refuses to be boring","makes me rethink everything","is doing the most","has me refreshing charts","is speedrunning emotions","never runs out of memes","is writing its own sitcom","feels like a prank"];
+const reactions=["and I’m still here for it.","and somehow I’m invested emotionally.","and I pretend I had a plan.","and I guess this is character growth.","and it’s hilarious at this point.","and I’ll probably do it again.","while acting cool about it.","and the popcorn is ready.","and I’m coping gracefully.","but I’m fine. Totally."];
+const addons=["Coffee is now an asset class.","Every dip unlocks a new personality trait.","Green candles cure everything.","I’ll delete this tweet if it ages badly.","If you see me buying, look away.","Charts are my cardio.","Someone take my phone away."];
+function rnd(a){ return a[Math.floor(Math.random()*a.length)]; }
+function buildTweet(lenPref){ if(!lenPref) lenPref=Math.random()<0.5?'short':'long'; let s=`${rnd(intros)} ${rnd(subjects)} ${rnd(actions)} ${rnd(reactions)}`; if (lenPref==='long') s+=" "+rnd(addons); return s.replace(/\s+/g,' ').trim(); }
+function setTweet(text){ el('tweet').textContent=text; updateScoreUI(viralScore(text)); refreshTokenButtons(); }
 
-// Auto-mode
-let tweetHistory=[],currentTweet="",auto=false,autoTimer=null,nextDeadline=0,INTERVAL=5000;
-function setAutoUI(on){const b=$('auto');b.textContent=on?"Auto Mode : ON":"Auto Mode : OFF";b.classList.toggle('boost',on)}
-function schedule(){if(!auto)return;nextDeadline=Date.now()+INTERVAL;clearTimeout(autoTimer);autoTimer=setTimeout(()=>{doGenerate(false);schedule()},INTERVAL)}
-function tick(){const cd=$('countdown');if(!auto){cd.textContent="";return}const ms=Math.max(0,nextDeadline-Date.now());cd.textContent="Next tweet in: "+Math.ceil(ms/1000)+" s"}setInterval(tick,100)
-function toggleAuto(){auto=!auto;setAutoUI(auto);if(auto){schedule()}else{clearTimeout(autoTimer);autoTimer=null}}
-function nextRandomizer(){return{hookProb:0.25+Math.random()*0.5,drift:(Math.random()-0.5)*10}}let randCfg=nextRandomizer();
+/* ---------- Auto Mode ---------- */
+function startAuto(){ if(autoOn) return; autoOn=true; el('autoBtn').textContent="Auto Mode : ON"; el('autoBtn').classList.add('active'); clickOn(); runAuto(); }
+function stopAuto(){ autoOn=false; el('autoBtn').textContent="Auto Mode : OFF"; el('autoBtn').classList.remove('active'); clickOff(); clearInterval(autoTimer); autoTimer=null; clearInterval(countdownTimer); countdownTimer=null; el('countdown').textContent=""; }
+function runAuto(){ const tick=()=>{ const t=buildTweet(); setTweet(t); genSound(); startCountdown(); }; tick(); clearInterval(autoTimer); autoTimer=setInterval(tick,interval); startCountdown(); }
+function startCountdown(){ clearInterval(countdownTimer); let sec=Math.ceil(interval/1000); el('countdown').textContent="Next in: "+sec+"s"; countdownTimer=setInterval(()=>{ sec--; el('countdown').textContent="Next in: "+sec+"s"; if(sec<=0) clearInterval(countdownTimer); },1000); }
 
-// Core actions
-function doGenerate(showFx=true){if(currentTweet)tweetHistory.push(currentTweet);currentTweet=sentence($('length').value,randCfg.hookProb,randCfg.drift);$('tweet-box').textContent=currentTweet;updateViralUI();if(showFx){window.__confettiBurst();Sound.event('generate');glowReaction()}randCfg=nextRandomizer()}
-function downloadCard(){const t=($('tweet-box').textContent||'').trim();if(!t){toast('Generate a tweet first');return}const score=viralScore(t);const canvas=document.createElement('canvas');const W=1200,H=628;canvas.width=W;canvas.height=H;const ctx=canvas.getContext('2d');const g1=ctx.createLinearGradient(0,0,W,H);g1.addColorStop(0,'#0b1115');g1.addColorStop(1,'#081019');ctx.fillStyle=g1;ctx.fillRect(0,0,W,H);ctx.strokeStyle='rgba(96,170,255,0.55)';ctx.lineWidth=8;ctx.strokeRect(12,12,W-24,H-24);ctx.fillStyle='rgba(255,255,255,0.03)';ctx.fillRect(32,32,W-64,H-64);ctx.fillStyle='#4ade80';ctx.font='700 34px Inter, system-ui, Arial';ctx.fillText('Crypto Tweet Factory',48,72);ctx.textAlign='right';ctx.font='700 22px Inter, system-ui, Arial';ctx.fillStyle='#4ade80';ctx.fillText('@setrixx19',W-48,H-40);ctx.textAlign='left';const chipX=W-260,chipY=52,chipW=180,chipH=44;ctx.fillStyle='rgba(96,170,255,0.18)';ctx.strokeStyle='rgba(96,170,255,0.6)';ctx.lineWidth=2;ctx.beginPath();if(ctx.roundRect){ctx.roundRect(chipX,chipY,chipW,chipH,12)}else{ctx.rect(chipX,chipY,chipW,chipH)}ctx.fill();ctx.stroke();ctx.fillStyle='#cfeaff';ctx.font='700 22px Inter, system-ui, Arial';ctx.fillText('Viral Score: '+score,chipX+16,chipY+28);const PX_LEFT=64,PX_TOP=120,PX_RIGHT=W-64,PX_BOTTOM=H-96;const MAX_W=PX_RIGHT-PX_LEFT,MAX_H=PX_BOTTOM-PX_TOP;let fontSize=44;ctx.fillStyle='#e6eef8';ctx.font=`600 ${fontSize}px Inter, system-ui, Arial`;function wrap(text){const words=text.split(' ');let lines=[''],i=0;for(const w of words){const test=lines[i]+(lines[i]?' ':'')+w;if(ctx.measureText(test).width<=MAX_W){lines[i]=test}else{lines.push(w);i++}}return lines}let lines=wrap(t);let lh=Math.round(fontSize*1.18);while((lines.length*lh)>MAX_H&&fontSize>18){fontSize-=2;ctx.font=`600 ${fontSize}px Inter, system-ui, Arial`;lh=Math.round(fontSize*1.18);lines=wrap(t)}const blockH=lines.length*lh;let y=PX_TOP+Math.max(0,(MAX_H-blockH)/2)+lh-Math.round(fontSize*0.18);for(const line of lines){ctx.fillText(line,PX_LEFT,y);y+=lh}const a=document.createElement('a');a.href=canvas.toDataURL('image/png');a.download='tweet_card.png';document.body.appendChild(a);a.click();a.remove()}
+/* ---------- Analyze ---------- */
+function openAnalyze(){
+  const t=el('tweet').textContent.trim();
+  const v=viralScore(t);
+  const delta=(hookOn?"+ XP boost active":"Enable Hook Boost for +XP");
+  el('analysisText').innerHTML =
+    `<div style="font-size:15px;margin-bottom:8px"><strong>Viral Probability:</strong> ${v}%</div>
+     <div style="margin-bottom:8px">"${t}"</div>
+     <div style="margin-bottom:8px;color:#bfeadf">Boost Delta: ${delta}</div>`;
+  el('overlay').style.display='flex';
+}
+function closeAnalyze(){ el('overlay').style.display='none'; }
 
-// Verify modal (+1 XP per unique tweet URL)
-(function(){const KEY='ctf_verified_tweets_v1';function getSeen(){try{return new Set(JSON.parse(localStorage.getItem(KEY)||'[]'))}catch(e){return new Set()}}function saveSeen(s){try{localStorage.setItem(KEY,JSON.stringify([...s]))}catch(e){}}
-const seen=getSeen();const modal=$('tvModal'),ok=$('tvOk'),cancel=$('tvCancel'),input=$('tvInput'),status=$('tvStatus');function close(){modal.style.display='none';status.textContent='';input.value=''}cancel.onclick=close;ok.onclick=function(){const url=(input.value||'').trim();const re=/^(https?:\/\/)?(x\.com|twitter\.com)\/[^\/]+\/status\/(\d+)/i;const m=url.match(re);if(!m){status.style.color='#ffb3b3';status.textContent='Invalid URL. Use https://x.com/yourname/status/1234567890';return}const id=m[3];if(seen.has(id)){status.style.color='#ffdf99';status.textContent='Already counted for XP.';return}seen.add(id);saveSeen(seen);toast('Tweet verified ✅ +1 XP');try{if(window.__rank){const cur=window.__rank.getXP();window.__rank.setXP(cur+1);window.__rank.render()}}catch(e){}close()}})();
+/* ---------- Quests ---------- */
+function millisToNextMidnight(){
+  const now = new Date();
+  const next = new Date(now.getFullYear(), now.getMonth(), now.getDate()+1, 0,0,0,0);
+  return next - now;
+}
+const QUEST_KEY_PREFIX = "ctf_quests_";
+function todayKey(){
+  const d = new Date(); const yyyy=d.getFullYear(); const mm=String(d.getMonth()+1).padStart(2,'0'); const dd=String(d.getDate()).padStart(2,'0');
+  return QUEST_KEY_PREFIX+`${yyyy}-${mm}-${dd}`;
+}
+const questTemplates = [
+  { id:"q_tweet3",   name:"Post 3 tweets",          target:3,   reward:50 },
+  { id:"q_score70",  name:"Hit Viral Score ≥ 70",   target:1,   reward:30 },
+  { id:"q_hook180",  name:"Keep Hook Boost 3 min",  target:180, reward:40, seconds:true }
+];
+let quests = null; let questTimer=null, questsCountdownTimer=null;
+function loadOrInitQuests(){
+  const key=todayKey(); const raw=LS(key);
+  if(raw){ try{ quests = JSON.parse(raw); }catch{ quests=null; } }
+  if(!quests){
+    quests = {};
+    questTemplates.forEach(q=> quests[q.id] = { progress:0, done:false, reward:q.reward, target:q.target, seconds:!!q.seconds, name:q.name });
+    setLS(key, JSON.stringify(quests));
+  }
+}
+function saveQuests(){ setLS(todayKey(), JSON.stringify(quests)); }
+function renderQuests(){
+  const wrap=el('questsWrap'); if(!wrap) return;
+  wrap.innerHTML="";
+  questTemplates.forEach(qt=>{
+    const q = quests[qt.id];
+    const div=document.createElement('div'); div.className='quest'+(q.done?' q-done':''); 
+    const head=document.createElement('div'); head.className='head';
+    head.innerHTML = `<span class="name">${qt.name}</span><span class="reward">+${q.reward} XP</span>`;
+    const bar=document.createElement('div'); bar.className='qbar';
+    const span=document.createElement('span'); bar.appendChild(span);
+    let pct = Math.min(100, Math.round((q.progress/qt.target)*100));
+    span.style.width = pct+'%';
+    const info=document.createElement('div');
+    const unit = qt.seconds ? 's' : '';
+    info.style.fontSize='12px'; info.style.color='#9ec1ff';
+    info.textContent = `${Math.min(q.progress, qt.target)} / ${qt.target}${unit}` + (q.done ? ' — Completed ✅' : '');
+    div.appendChild(head); div.appendChild(bar); div.appendChild(info);
+    wrap.appendChild(div);
+  });
+}
+function startQuestCountdown(){
+  function tick(){
+    const ms = millisToNextMidnight();
+    const h = String(Math.floor(ms/3600000)).padStart(2,'0');
+    const m = String(Math.floor((ms%3600000)/60000)).padStart(2,'0');
+    const s = String(Math.floor((ms%60000)/1000)).padStart(2,'0');
+    el('questsCountdown').textContent = `Resets in ${h}:${m}:${s}`;
+  }
+  tick(); clearInterval(questsCountdownTimer); questsCountdownTimer=setInterval(tick,1000);
+}
+function progressQuest(id, amount){
+  const q = quests[id]; if(!q || q.done) return;
+  q.progress += amount;
+  if(q.progress >= q.target){
+    q.progress = q.target; q.done = true;
+    xp += q.reward; saveProgress(); updateRankUI(true);
+    toast(`Quest complete: +${q.reward} XP`);
+  }
+  saveQuests(); renderQuests();
+}
+function startHookQuestTimer(){ clearInterval(questTimer); questTimer=setInterval(()=>{ if(hookOn) progressQuest("q_hook180", 1); },1000); }
 
-// Bind all buttons safely after DOM is ready
+/* ---------- Meme Coins ---------- */
+const MEME_COINS = ["$PEPE","$WIF","$BONK","$DOGE","$SHIB","$FLOKI","$GROK","$MOON","$POPCAT","$BODEN","$TRUMP","$ELON","$TOSHI"];
+let autoToken=false, autoTokenTimer=null;
+function randomChange(){ const v=(Math.random()*14).toFixed(2); return (Math.random()<0.5?'-':'+')+v+'%'; }
+function pickCoins(n=5){ const shuffled=[...MEME_COINS].sort(()=>Math.random()-0.5); return shuffled.slice(0,n).map(sym=>({sym,chg:randomChange()})); }
+function hasCoin(sym){ const t=el('tweet').textContent; const re=new RegExp('(^|\\s)\\'+sym.replace('$','\\$')+'(\\s|$)'); return re.test(t); }
+function removeCoin(sym){ let t=el('tweet').textContent; const re=new RegExp('(\\s)?\\'+sym.replace('$','\\$')+'(\\b)','g'); t=t.replace(re,'').replace(/\s{2,}/g,' ').trim(); setTweet(t); }
+function addCoin(sym){ let t=el('tweet').textContent.trim(); if(!hasCoin(sym)){ t=(t+' '+sym).replace(/\s{2,}/g,' ').trim(); setTweet(t);} }
+function toggleCoin(sym, btn){ if(hasCoin(sym)){ removeCoin(sym); btn.textContent='➕ Insert'; } else { addCoin(sym); btn.textContent='➖ Remove'; } }
+function refreshTokenButtons(){ document.querySelectorAll('#tokensWrap .token-row').forEach(row=>{ const sym=row.querySelector('.token-sym').textContent.trim(); const btn=row.querySelector('button'); btn.textContent=hasCoin(sym)?'➖ Remove':'➕ Insert'; }); }
+function renderTokens(list){
+  const wrap=el('tokensWrap'); wrap.innerHTML="";
+  list.forEach(it=>{
+    const row=document.createElement('div'); row.className='token-row';
+    const left=document.createElement('div'); left.innerHTML=`<span class="token-sym">${it.sym}</span> <span class="badge">now</span>`;
+    const ch=document.createElement('div'); ch.className='token-chg '+(it.chg.startsWith('+')?'up':'down'); ch.textContent=it.chg;
+    const actions=document.createElement('div'); actions.className='token-actions';
+    const btn=document.createElement('button'); btn.className='btn small'; btn.textContent='➕ Insert'; btn.onclick=()=>toggleCoin(it.sym, btn);
+    actions.appendChild(btn); row.appendChild(left); row.appendChild(ch); row.appendChild(actions); wrap.appendChild(row);
+  }); refreshTokenButtons();
+}
+function toggleAutoTokens(){
+  autoToken=!autoToken; el('autoTokensBadge').textContent="Auto: "+(autoToken?"ON":"OFF");
+  if(autoToken){ const run=()=>renderTokens(pickCoins()); run(); clearInterval(autoTokenTimer); autoTokenTimer=setInterval(run,15000); }
+  else{ clearInterval(autoTokenTimer); autoTokenTimer=null; }
+}
+
+/* ---------- Wire up ---------- */
 document.addEventListener('DOMContentLoaded', function(){
-  Sound.updateBtn();
-  $('muteBtn').addEventListener('click', ()=> Sound.setMuted(!Sound.isMuted()));
-  const hookBtn=$('hookToggle'); hookBtn.addEventListener('click', ()=>{hookBoost=!hookBoost; hookBtn.classList.toggle('active',hookBoost); hookBtn.textContent=hookBoost?'🔥 Hook Boost ON':'🔥 Hook Boost OFF'});
-  $('generate2').addEventListener('click', ()=>{doGenerate(true)});
-  $('tweet').addEventListener('click', ()=>{
-    const t=($('tweet-box').textContent||'').trim();
-    if(!t){toast('Generate a tweet first');return}
-    window.open("https://twitter.com/intent/tweet?text="+encodeURIComponent(t),"_blank");
-    Sound.event('tweet'); glowReaction();
-    setTimeout(()=>{$('tvModal').style.display='flex'},1000);
+  // Buttons core
+  el('genBtn').addEventListener('click', ()=>{ setTweet(buildTweet()); genSound(); });
+  el('tweetBtn').addEventListener('click', ()=>{
+    tweetSound();
+    window.open("https://twitter.com/intent/tweet?text="+encodeURIComponent(el('tweet').textContent.trim()), "_blank");
+    const v = viralScore(el('tweet').textContent.trim());
+    xp += (hookOn?20:10); saveProgress(); updateRankUI(true);
+    progressQuest("q_tweet3", 1);
+    if(v>=70) progressQuest("q_score70", 1);
   });
-  $('copy').addEventListener('click', async ()=>{
-    const t=($('tweet-box').textContent||'').trim();
-    if(!t){toast('Generate a tweet first');return}
-    await navigator.clipboard.writeText(t);
-    toast('Copied ✅'); Sound.event('copy'); glowReaction();
+  el('copyBtn').addEventListener('click', async ()=>{ try{ await navigator.clipboard.writeText(el('tweet').textContent.trim()); toast("Copied ✅"); }catch(e){ toast("Copy failed"); } });
+
+  // Toggles
+  el('autoBtn').addEventListener('click', ()=>{ if(autoOn) { clickOff(); stopAuto(); } else { clickOn(); startAuto(); } });
+  el('autoSpeed').addEventListener('change', (e)=>{ interval=parseInt(e.target.value,10)||5000; if(autoOn){ stopAuto(); startAuto(); } });
+  el('hookToggle').addEventListener('click', (e)=>{ hookOn=!hookOn; e.currentTarget.classList.toggle('active', hookOn); if(hookOn) clickOn(); else clickOff(); });
+
+  // Analyze
+  el('analyzeBtn').addEventListener('click', openAnalyze);
+  el('closeModal').addEventListener('click', closeAnalyze);
+  el('overlay').addEventListener('click', (ev)=>{ if(ev.target===el('overlay')) closeAnalyze(); });
+
+  // SFX toggle
+  const soundBtn = el('soundBtn');
+  function updateSfxLabel(){ soundBtn.textContent = sfxOn ? "🔊 Sounds On" : "🔇 Sounds Muted"; }
+  updateSfxLabel();
+  soundBtn.addEventListener('click', ()=>{ sfxOn=!sfxOn; setLS('ctf_sfx_on', String(sfxOn)); updateSfxLabel(); });
+
+  // Tip copy
+  el('addrShort').addEventListener('click', async ()=>{ try{ await navigator.clipboard.writeText(el('addrFull').textContent.trim()); toast("SOL address copied ✅"); }catch(e){} });
+
+  // Rank reset
+  el('resetRank').addEventListener('click', ()=>{
+    if(!confirm("Reset your rank and XP?")) return;
+    xp=0; streak=0; lastRankName="Normie"; setLS('ctf_last_rank','Normie'); saveProgress(); updateRankUI(false); toast("Rank reset ✅");
   });
-  $('back').addEventListener('click', ()=>{
-    if(!tweetHistory.length)return; currentTweet=tweetHistory.pop(); $('tweet-box').textContent=currentTweet; updateViralUI();
+
+  // Quests
+  loadOrInitQuests(); renderQuests(); startQuestCountdown(); startHookQuestTimer();
+
+  // Tokens
+  renderTokens(pickCoins());
+  el('refreshTokens').addEventListener('click', ()=>renderTokens(pickCoins()));
+  el('insertTopToken').addEventListener('click', ()=>{
+    const symEl = el('tokensWrap').querySelector('.token-row .token-sym'); if(!symEl) return;
+    const sym = symEl.textContent.trim(); if(hasCoin(sym)) removeCoin(sym); else addCoin(sym); refreshTokenButtons();
   });
-  $('auto').addEventListener('click', ()=> toggleAuto());
-  $('speed').addEventListener('change', e=>{INTERVAL=parseInt(e.target.value,10)||5000; if(auto){schedule()}});
+  el('autoTokensBadge').addEventListener('click', toggleAutoTokens);
 
-  // Sidebar toggle
-  (function(){const side=$('leftSidebar'),handle=$('sideHandle'),btn=$('toggleSidebar'),KEY='ctf_sidebar_open_rank';function apply(open){side.setAttribute('data-open',open?'true':'false');localStorage.setItem(KEY,open?'1':'0'); if(btn) btn.textContent=open?'◀':'➤'} apply(localStorage.getItem(KEY)!=='0'); if(btn){btn.onclick=()=>apply(side.getAttribute('data-open')!=='true')} if(handle){handle.onclick=()=>apply(side.getAttribute('data-open')!=='true')}})();
+  // Upgrade overlay
+  const upg = el('upgradeOverlay');
+  el('openUpgrade').addEventListener('click', ()=>{ upg.style.display='flex'; });
+  el('upgClose').addEventListener('click', ()=>{ upg.style.display='none'; });
+  el('upgMark').addEventListener('click', ()=>{
+    const tx=(el('upgTxid').value||'').trim(); if(!tx){ alert('Please paste a TXID.'); return; }
+    localStorage.setItem('ctf_premium_v1','true'); el('premBadge').style.display='inline-block'; upg.style.display='none'; toast("Premium unlocked locally ✅");
+  });
 
-  // Analyzer modal
-  const anModal=$('anModal'); $('analyzeBtn').onclick=()=>{anModal.style.display='flex';$('anText').focus()}; $('anClose').onclick=()=>{anModal.style.display='none'};
-  $('anRun').onclick=()=>{const t=($('anText').value||'').trim(); if(!t){$('anResult').textContent='Paste something first.';return} const s=viralScore(t),len=t.length,emojis=(t.match(/[\u{1F300}-\u{1FAFF}]/gu)||[]).length,hasHook=/^(breaking:|note to self:|hear me out:|wild thought:|update:|plot twist:)/i.test(t); $('anResult').innerHTML=`<div><strong>Score:</strong> ${s}</div><div><strong>Length:</strong> ${len}</div><div><strong>Emojis:</strong> ${emojis}</div><div><strong>Hook:</strong> ${hasHook?'yes':'no'}</div><div style="margin-top:8px;color:#9ec1ff">${scoreTips(s)}</div>`};
-  $('anUse').onclick=()=>{const t=($('anText').value||'').trim(); if(!t)return; $('tweet-box').textContent=t; updateViralUI(); anModal.style.display='none'};
-
-  // Share card
-  $('shareCard').addEventListener('click', downloadCard);
-
-  // Tip (Solana 0.1 deep link)
-  const WALLET_SOL="77M7waPc3o6uEpwHxnNRzJ9Ga47gnFPZVJKu3AP1mRjv";
-  function buildSolPay(amount,label="Crypto Tweet Factory",message="Thanks for the tip!"){const p=new URLSearchParams({amount,label,message});return `solana:${WALLET_SOL}?${p.toString()}`}
-  $('tipMini').onclick=()=>{const amt=0.1; try{navigator.clipboard.writeText(WALLET_SOL)}catch(e){} toast(`Thanks for your tip of ${amt} SOL 💚`); window.__confettiBurst&&window.__confettiBurst(); const uri=buildSolPay(amt); try{const w=window.open(uri); if(!w) location.href=uri;}catch(e){location.href=uri} };
-
-  // Init UI
-  doGenerate(false);
-  setAutoUI(false);
+  // Init tweet + UI
+  setTweet(buildTweet());
+  updateRankUI(false);
 });
 </script>
-<div class="brand">Created by @setrixx19</div>
-<!-- Tip Modal for desktop fallback (QR & copy) -->
-<div id="tipModal" style="position:fixed;inset:0;display:none;align-items:center;justify-content:center;background:rgba(0,0,0,.6);z-index:160">
-  <div style="width:min(420px,92vw);background:#0b1115;border:1px solid #13212c;border-radius:14px;padding:16px;box-shadow:0 30px 80px rgba(0,0,0,.55)">
-    <div style="font-weight:800;color:#9fe6b8;margin-bottom:6px">Tip in SOL</div>
-    <div style="color:#cfeaff;margin-bottom:10px">Scan the QR with Phantom/any SOL wallet, or copy the address to send <strong>0.1 SOL</strong>.</div>
-    <canvas id="tipQR" width="256" height="256" style="display:block;margin:0 auto 10px;border-radius:8px;background:#081019;border:1px solid #12202a"></canvas>
-    <div style="font-family:monospace;color:#bfffd3;text-align:center;margin-bottom:10px" id="tipAddrText"></div>
-    <div id="tipMsg" style="min-height:18px;font-size:12px;color:#8aa1b1;text-align:center;margin-bottom:8px"></div>
-    <div style="display:flex;gap:8px;justify-content:space-between">
-      <button id="tipCopy" class="btn small">Copy Address</button>
-      <div style="flex:1"></div>
-      <button id="tipClose" class="btn gen">Close</button>
+
+<!-- === MUSIC v4 (toolbar button, docked, minimizable, with your playlists) === -->
+<style>
+  .ctfM4-btn{background:#0e1a22;border:1px solid #203140;color:#cbecff;padding:9px 14px;border-radius:12px;font-weight:800;cursor:pointer}
+  .ctfM4-btn:hover{transform:translateY(-1px);box-shadow:0 8px 22px rgba(0,200,255,.18)}
+  .ctfM4-panel{position:fixed;right:16px;bottom:12px;z-index:99998;width:min(420px,96vw);
+    background:#0b1115;border:1px solid #13212c;border-radius:14px;box-shadow:0 24px 80px rgba(0,0,0,.55);color:#e6eef8;display:none}
+  .ctfM4-panel header{display:flex;justify-content:space-between;align-items:center;padding:10px 12px;border-bottom:1px solid #13212c}
+  .ctfM4-body{padding:10px 12px;display:grid;gap:10px}
+  .ctfM4-row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+  .ctfM4-sel{background:#0e1a22;color:#cbecff;border:1px solid #203140;border-radius:12px;padding:8px 10px}
+  .ctfM4-ctl{background:#0e1a22;border:1px solid #203140;color:#cbecff;padding:6px 10px;border-radius:10px;cursor:pointer}
+  .ctfM4-iframe{width:100%;aspect-ratio:16/9;border:0;border-radius:10px;overflow:hidden}
+  .ctfM4-panel.mini .ctfM4-body{height:0;padding:0;overflow:hidden}
+  .ctfM4-miniBar{display:none;align-items:center;gap:8px;padding:8px 12px}
+  .ctfM4-panel.mini .ctfM4-miniBar{display:flex}
+  .ctfM4-pill{background:#0e1a22;border:1px solid #203140;color:#cbecff;border-radius:999px;padding:4px 10px;font-size:12px}
+</style>
+<div id="ctfM4-root"></div>
+<script>
+(function(){
+  const rootId='ctfM4-root'; if(document.getElementById(rootId)?.dataset.init==='1') return;
+  const root=document.getElementById(rootId)||document.body.appendChild(Object.assign(document.createElement('div'),{id:rootId}));
+  root.dataset.init='1';
+  const LINKS={
+    lofi:      "https://www.youtube.com/embed?listType=playlist&list=RDCLAK5uy_kb7EBi6y3GrtJri4_ZH56Ms786DFEimbM&autoplay=0&mute=0&playsinline=1&rel=0&controls=1&modestbranding=1",
+    synthwave: "https://www.youtube.com/embed?listType=playlist&list=PLaaoUDTfq6i89CpSFrNA59p_3GtThcc_q&autoplay=0&mute=0&playsinline=1&rel=0&controls=1&modestbranding=1",
+    chilltrap: "https://www.youtube.com/embed?listType=playlist&list=PLWJhJqb697j7Uu8b52-2OHc4A3jMyu6sF&autoplay=1&mute=0&playsinline=1&rel=0&controls=1&modestbranding=1",
+    ambient:   "https://www.youtube.com/embed?listType=playlist&list=PL_gP0VBdLBbZjqz4mNWDEq02G3sgRFrdD&v=nc91s-8aaBM&index=1&autoplay=0&mute=0&playsinline=1&rel=0&controls=1&modestbranding=1"
+  };
+  // Add button into toolbar
+  const bar = document.querySelector('.toolbar-right') || document.querySelector('header .right') || document.body;
+  const btn = Object.assign(document.createElement('button'),{id:'ctfM4-btn',className:'ctfM4-btn',textContent:'🎵 Music'});
+  bar.appendChild(btn);
+  // Panel
+  const panel = Object.assign(document.createElement('div'),{id:'ctfM4-panel',className:'ctfM4-panel',ariaHidden:'true'});
+  panel.innerHTML=`
+    <header>
+      <strong>Background Music</strong>
+      <div style="display:flex;gap:6px;align-items:center">
+        <span id="ctfM4-now" class="ctfM4-pill">—</span>
+        <button id="ctfM4-min" class="ctfM4-ctl">–</button>
+        <button id="ctfM4-close" class="ctfM4-ctl">✖</button>
+      </div>
+    </header>
+    <div class="ctfM4-miniBar">
+      <span id="ctfM4-miniText">Chill Trap playing…</span>
+      <button id="ctfM4-restore" class="ctfM4-ctl">▣</button>
     </div>
-  </div>
-</div>
+    <div class="ctfM4-body">
+      <div class="ctfM4-row">
+        <label>Style</label>
+        <select id="ctfM4-style" class="ctfM4-sel">
+          <option value="lofi">Lo-Fi</option>
+          <option value="synthwave">Synthwave</option>
+          <option value="chilltrap">Chill-Trap</option>
+          <option value="ambient">Ambient</option>
+        </select>
+        <small style="color:#9ec1ff">If audio is blocked, press ▶ in the player once.</small>
+      </div>
+      <iframe id="ctfM4-frame" class="ctfM4-iframe" allow="autoplay; encrypted-media" referrerpolicy="strict-origin-when-cross-origin"></iframe>
+    </div>`;
+  document.body.appendChild(panel);
 
-<script>
-// Global Toggle-Click-Sounds – no UI changes, recognizes Hook/Auto by text/id/class
-(function(){
-  const AC = window.AudioContext || window.webkitAudioContext;
-  let ctx;
-  function ensureAC(){ if(!ctx) ctx = new AC(); return ctx; }
-  function tone(freq, type, a, h, r, g){
-    try{
-      const ac = ensureAC(), t0 = ac.currentTime;
-      const o = ac.createOscillator(), gn = ac.createGain();
-      o.type = type; o.frequency.setValueAtTime(freq, t0);
-      gn.gain.setValueAtTime(0, t0); o.connect(gn); gn.connect(ac.destination);
-      gn.gain.linearRampToValueAtTime(g, t0+a);
-      gn.gain.setValueAtTime(g, t0+a+h);
-      gn.gain.linearRampToValueAtTime(0.0001, t0+a+h+r);
-      o.start(t0); o.stop(t0+a+h+r+0.03);
-    }catch(e){}
+  const styleSel=document.getElementById('ctfM4-style');
+  const frame=document.getElementById('ctfM4-frame');
+  const bClose=document.getElementById('ctfM4-close');
+  const bMin=document.getElementById('ctfM4-min');
+  const bRestore=document.getElementById('ctfM4-restore');
+  const nowPill=document.getElementById('ctfM4-now');
+  const miniText=document.getElementById('ctfM4-miniText');
+
+  const LSStyle='ctfM4_style', LSMini='ctfM4_mini', LSOpened='ctfM4_opened_once';
+  function open(){ panel.style.display='block'; }
+  function close(){ panel.style.display='none'; }
+  function setNowLabel(s){
+    const map={lofi:'Lo-Fi', synthwave:'Synthwave', chilltrap:'Chill Trap', ambient:'Ambient'};
+    nowPill.textContent = map[s] || s;
+    miniText.textContent = (map[s]||s) + " playing…";
   }
-  const Sound = window.Sound || {
-    event: (name)=>{
-      if(name==='toggleOn')  tone(880, 'square', 0.004, 0.03, 0.08, 0.035);
-      if(name==='toggleOff') tone(520, 'square', 0.004, 0.02, 0.07, 0.030);
-    }
-  };
-  function readState(el){
-    if(!el) return null;
-    const ap = el.getAttribute && el.getAttribute('aria-pressed');
-    if(ap === 'true') return true;
-    if(ap === 'false') return false;
-    if(el.dataset && el.dataset.state){
-      if(/on|true|1/i.test(el.dataset.state)) return true;
-      if(/off|false|0/i.test(el.dataset.state)) return false;
-    }
-    if(el.classList && el.classList.contains('active')) return true;
-    const t = (el.textContent||'').toLowerCase();
-    if(/\bon\b/.test(t)) return true;
-    if(/\boff\b/.test(t)) return false;
-    return null;
+  function minimize(){
+    if(panel.classList.contains('mini')) return;
+    frame.dataset.prev = frame.getAttribute('style')||'';
+    frame.style.position='fixed'; frame.style.left='-9999px'; frame.style.top='-9999px';
+    frame.style.width='1px'; frame.style.height='1px'; frame.style.pointerEvents='none';
+    panel.classList.add('mini'); localStorage.setItem(LSMini,'1');
   }
-  function looksLikeHook(el){
-    const id = (el.id||'').toLowerCase();
-    const cls = (el.className||'').toLowerCase();
-    const txt = (el.textContent||'').toLowerCase();
-    return id.includes('hook') || cls.includes('hook') || txt.includes('hook');
+  function restore(){
+    if(!panel.classList.contains('mini')) return;
+    frame.setAttribute('style', frame.dataset.prev||'');
+    panel.classList.remove('mini'); localStorage.setItem(LSMini,'0');
   }
-  function looksLikeAuto(el){
-    const id = (el.id||'').toLowerCase();
-    const cls = (el.className||'').toLowerCase();
-    const txt = (el.textContent||'').toLowerCase();
-    return id.includes('auto') || cls.includes('auto') || txt.includes('auto');
-  }
-  document.addEventListener('click', function(ev){
-    let el = ev.target;
-    el = el.closest && el.closest('button, [role="button"], .btn');
-    if(!el) return;
-    const isHook = looksLikeHook(el);
-    const isAuto = !isHook && looksLikeAuto(el);
-    if(!isHook && !isAuto) return;
-    setTimeout(()=>{
-      let now = readState(el);
-      if(now === null){
-        const last = el.__lastToggleState === true;
-        now = !last;
-      }
-      try{ Sound.event(now ? 'toggleOn' : 'toggleOff'); }catch(e){}
-      el.__lastToggleState = now;
-    }, 0);
-  }, true);
+  function toggleMini(){ panel.classList.contains('mini')?restore():minimize(); }
+  function loadStyle(s){ frame.src = LINKS[s] || LINKS.lofi; localStorage.setItem(LSStyle, s); setNowLabel(s); }
+
+  const firstOpenDone = localStorage.getItem(LSOpened)==='1';
+  const savedStyle = localStorage.getItem(LSStyle) || 'chilltrap';
+  styleSel.value = firstOpenDone ? savedStyle : 'chilltrap';
+  loadStyle(styleSel.value);
+  if(!firstOpenDone){ open(); localStorage.setItem(LSOpened,'1'); }
+  if(localStorage.getItem(LSMini)==='1'){ open(); minimize(); }
+
+  btn.addEventListener('click', ()=> panel.style.display = (panel.style.display==='block'?'none':'block'));
+  bClose.addEventListener('click', close);
+  bMin.addEventListener('click', toggleMini);
+  bRestore.addEventListener('click', restore);
+  panel.querySelector('header').addEventListener('dblclick', toggleMini);
+  styleSel.addEventListener('change', e=> loadStyle(e.target.value));
 })();
 </script>
+<!-- === /MUSIC v4 === -->
 
-<script>
-// Balanced viralScore override (more spread incl. <40)
-(function(){
-  function escapeReg(s){ return s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"); }
-  window.viralScore = function(text){
-    let s = 42; // lower base
-    const t = (text||"").trim();
-    const len = t.length;
-
-    const hasHook = /^(breaking:|note to self:|hear me out:|wild thought:|update:|plot twist:)/i.test(t);
-    const emojis = (t.match(/[\u{1F300}-\u{1FAFF}]/gu) || []).length;
-    const hashtags = (t.match(/#[a-z0-9_]+/gi) || []).length;
-    const letters = t.replace(/[^A-Za-z]/g,"");
-    const capsRatio = letters ? (letters.replace(/[^A-Z]/g,"").length / letters.length) : 0;
-
-    const words = t.toLowerCase().split(/\s+/).filter(w=>w && !/^#/.test(w));
-    const freq = {}; let maxFreq = 0;
-    for(const w of words){ freq[w]=(freq[w]||0)+1; if(freq[w]>maxFreq) maxFreq=w?freq[w]:maxFreq; }
-
-    if (len >= 110 && len <= 170) s += 14;
-    else if (len >= 80 && len < 110) s += 8;
-    else if (len > 170 && len <= 250) s += 6;
-    else if (len < 60) s -= 16;
-    else if (len > 260) s -= 14;
-    else s -= 6;
-
-    if (hasHook) s += 10;
-
-    if (emojis === 0) s += 0;
-    else if (emojis === 1) s += 4;
-    else if (emojis === 2) s += 1;
-    else s -= 8;
-
-    if (hashtags >= 4) s -= 10;
-    else if (hashtags === 3) s -= 6;
-    else if (hashtags === 2) s -= 3;
-
-    if (capsRatio > 0.35) s -= 10;
-    else if (capsRatio > 0.25) s -= 6;
-
-    if (maxFreq >= 4) s -= 10;
-    else if (maxFreq === 3) s -= 6;
-
-    const kwEl = document.getElementById('search');
-    if (kwEl){
-      const kw = kwEl.value.trim();
-      if (kw){
-        const re = new RegExp("\\\\b"+escapeReg(kw)+"\\\\b","i");
-        if (re.test(t)) s += 2;
-      }
-    }
-
-    s += (Math.random()*16 - 8);
-
-    s = Math.max(0, Math.min(100, Math.round(s)));
-    return s;
-  };
-
-  try{
-    if (typeof updateViralUI === "function"){
-      updateViralUI();
-    }
-  }catch(e){}
-})();
-</script>
-<!-- Mute integration for Auto/Hook toggle sounds -->
-<script>
-(function(){
-  const LS_KEY = 'ctf_muted';
-  // 1) Global muted flag (persisted)
-  if (typeof window.__ctfMuted === 'undefined') {
-    window.__ctfMuted = (localStorage.getItem(LS_KEY) === '1');
-  }
-  function setMuted(v){
-    window.__ctfMuted = !!v;
-    try{ localStorage.setItem(LS_KEY, window.__ctfMuted ? '1' : '0'); }catch(e){}
-    // If a Sound API exists with setMuted, sync it
-    try{ if (window.Sound && typeof window.Sound.setMuted === 'function') window.Sound.setMuted(window.__ctfMuted); }catch(e){}
-  }
-
-  // 2) Wrap/Proxy Sound.event so ALL future sounds respect mute
-  (function hardenSound(){
-    const original = (window.Sound && window.Sound.event) ? window.Sound.event.bind(window.Sound) : null;
-    const AC = window.AudioContext || window.webkitAudioContext;
-    let ctx;
-    function ensureAC(){ if(!ctx) ctx = new AC(); return ctx; }
-    function tone(freq, type, a, h, r, g){
-      try{
-        const ac = ensureAC(), t0 = ac.currentTime;
-        const o = ac.createOscillator(), gn = ac.createGain();
-        o.type = type; o.frequency.setValueAtTime(freq, t0);
-        gn.gain.setValueAtTime(0, t0); o.connect(gn); gn.connect(ac.destination);
-        gn.gain.linearRampToValueAtTime(g, t0+a);
-        gn.gain.setValueAtTime(g, t0+a+h);
-        gn.gain.linearRampToValueAtTime(0.0001, t0+a+h+r);
-        o.start(t0); o.stop(t0+a+h+r+0.03);
-      }catch(e){}
-    }
-    // Create a safe facade
-    const facade = {
-      event(name){
-        if (window.__ctfMuted) return; // <- respect mute universally
-        if (original) { try{ original(name); return; }catch(e){} }
-        // minimal fallback if no original Sound is present
-        if (name === 'toggleOn')  tone(880, 'square', 0.004, 0.03, 0.08, 0.035);
-        else if (name === 'toggleOff') tone(520, 'square', 0.004, 0.02, 0.07, 0.030);
-      },
-      setMuted: setMuted,
-      isMuted: function(){ return !!window.__ctfMuted; }
-    };
-    window.Sound = Object.assign({}, window.Sound, facade);
-  })();
-
-  // 3) Wire up common mute buttons to toggle the global flag (IDs/classes/text fallbacks)
-  function looksLikeMute(el){
-    const id = (el.id||'').toLowerCase();
-    const cls = (el.className||'').toLowerCase();
-    const txt = (el.textContent||'').toLowerCase();
-    return id.includes('mute') || cls.includes('mute') || txt.includes('mute');
-  }
-  function readPressed(el){
-    // Prefer aria-pressed
-    const ap = el.getAttribute && el.getAttribute('aria-pressed');
-    if (ap === 'true') return true;
-    if (ap === 'false') return false;
-    // class 'active' means ON
-    if (el.classList && el.classList.contains('active')) return true;
-    // text ON/OFF fallback
-    const t = (el.textContent||'').toLowerCase();
-    if (/\bon\b/.test(t)) return true;
-    if (/\boff\b/.test(t)) return false;
-    return null;
-  }
-  function applyInitialVisual(el){
-    if (!el) return;
-    // If your UI uses an 'active' class for ON, sync it to our stored mute state (note: mute ON usually means no sound)
-    // Here we won't flip your UI; we only ensure aria-pressed if present.
-    try{ el.setAttribute('aria-pressed', (!window.__ctfMuted)+''); }catch(e){}
-  }
-  document.addEventListener('click', function(ev){
-    let el = ev.target;
-    el = el.closest && el.closest('button, [role="button"], .btn');
-    if (!el) return;
-    if (!looksLikeMute(el)) return;
-    // Wait a tick so the UI can toggle its own state first, then read and invert to muted
-    setTimeout(function(){
-      // Many UIs mark ON = sound ON, but our 'muted' flag is the inverse
-      const isOn = readPressed(el);
-      if (isOn === null) {
-        // If unknown, toggle from current setting
-        setMuted(!window.__ctfMuted);
-      } else {
-        setMuted(!isOn); // if UI shows ON (sound on), we mute=false; if UI shows OFF, mute=true
-      }
-    }, 0);
-  }, true);
-
-  // 4) Apply stored state at load
-  setMuted(window.__ctfMuted);
-  // Optionally, try to find a mute element to sync aria
-  const guess = document.getElementById('mute') || document.getElementById('muteBtn') || document.querySelector('[data-role="mute"]');
-  applyInitialVisual(guess);
-})();
-</script>
-<script>
-// Enhance Hook button to have an animatable flame span without changing your toggle logic
-(function(){
-  const hook = document.getElementById('hookToggle');
-  if(!hook || hook.__flameWired) return;
-  // If button text already contains a flame emoji, wrap only the first occurrence
-  const txt = hook.textContent;
-  const m = txt.match(/(.*?)(\u{1F525})(.*)/u);
-  if (m){
-    const before = m[1].trim();
-    const after  = (m[3]||"").trim();
-    hook.innerHTML = (before? before+" " : "") + '<span class="flame">🔥</span>' + (after? " "+after : "");
-  } else {
-    // If no flame present, prepend one (keeps the rest intact)
-    hook.innerHTML = '<span class="flame">🔥</span> ' + txt.trim();
-  }
-  hook.__flameWired = true;
-})();
-</script>
-<script>
-/* === Sound Controller (labels: "Sound On" / "Muted") === */
-(function(){
-  const LS = 'ctf_soundon';
-  // Global flag: true => sounds allowed; false => blocked
-  if (typeof window.__ctfSoundOn === 'undefined') {
-    const stored = localStorage.getItem(LS);
-    window.__ctfSoundOn = (stored === null) ? true : (stored === '1');
-  }
-  function setSoundOn(v){
-    window.__ctfSoundOn = !!v;
-    try{ localStorage.setItem(LS, window.__ctfSoundOn ? '1':'0'); }catch(e){}
-    // sync legacy muted flag for any third-party checks
-    window.__ctfMuted = !window.__ctfSoundOn;
-  }
-  window.__ctfSetSoundOn = setSoundOn;
-
-  // Wrap HTMLAudioElement.play so it respects __ctfSoundOn
-  (function(){
-    const P = window.HTMLAudioElement && window.HTMLAudioElement.prototype;
-    if (!P || P.__ctfSoundOnWrap) return;
-    const _play = P.play;
-    P.play = function(){
-      if (!window.__ctfSoundOn) { try{ this.pause(); }catch(e){} return Promise.resolve(); }
-      try{ return _play.apply(this, arguments); }catch(e){ return Promise.reject(e); }
-    };
-    P.__ctfSoundOnWrap = true;
-  })();
-
-  // Wrap OscillatorNode.start (WebAudio beeps)
-  (function(){
-    const Proto = window.OscillatorNode && window.OscillatorNode.prototype;
-    if (!Proto || Proto.__ctfSoundOnWrap) return;
-    const _start = Proto.start, _stop = Proto.stop;
-    Proto.start = function(){
-      if (!window.__ctfSoundOn) {
-        try{ if (typeof _stop === 'function') _stop.call(this, this.context?.currentTime); }catch(e){}
-        return;
-      }
-      return _start.apply(this, arguments);
-    };
-    Proto.__ctfSoundOnWrap = true;
-  })();
-
-  // Respect __ctfSoundOn for any Sound.event calls
-  (function(){
-    let _S = window.Sound || {};
-    function wrapEvent(){
-      const orig = (typeof _S.event === 'function') ? _S.event.bind(_S) : null;
-      _S.event = function(name){
-        if (!window.__ctfSoundOn) return; // block if muted
-        if (orig) { try{ return orig(name); }catch(e){} }
-      };
-    }
-    Object.defineProperty(window, 'Sound', {
-      configurable:true,
-      get(){ return _S; },
-      set(v){ _S = v || {}; try{ wrapEvent(); }catch(e){} }
-    });
-    try{ wrapEvent(); }catch(e){}
-  })();
-
-  // Auto-detect your top-right sound button by label text
-  function looksLikeSoundBtn(el){
-    const t=(el.textContent||'').toLowerCase();
-    const id=(el.id||'').toLowerCase();
-    const cls=(el.className||'').toLowerCase();
-    // Accept both explicit mute-names and label-based names
-    return id.includes('mute') || cls.includes('mute') || t.includes('sound on') || t.includes('muted');
-  }
-  function isLabelSoundOn(el){
-    const t=(el.textContent||'').toLowerCase();
-    // Your wording:
-    if (t.includes('sound on')) return true;
-    if (t.includes('muted'))    return false;
-    // fallback to aria/class
-    if (el.getAttribute && el.getAttribute('aria-pressed')==='true') return true;
-    if (el.classList && el.classList.contains('active')) return true;
-    return window.__ctfSoundOn; // keep current state
-  }
-
-  // Map clicks on the sound button to our global flag
-  document.addEventListener('click', function(ev){
-    const el = ev.target.closest && ev.target.closest('button, [role="button"], .btn');
-    if(!el) return;
-    if (!looksLikeSoundBtn(el)) return;
-    setTimeout(()=>{ setSoundOn( isLabelSoundOn(el) ); }, 0);
-  }, true);
-
-  // On startup, try to sync initial state from the button label if present
-  window.addEventListener('DOMContentLoaded', ()=>{
-    const guess = document.querySelector('header .right button, header .right .btn, button, [role="button"]');
-    if (guess && looksLikeSoundBtn(guess)) {
-      setSoundOn( isLabelSoundOn(guess) );
-    }
-  });
-})();
-</script>
-<script>
-// Wrap 🔥 in <span class="flame"> if not already, without breaking your existing toggle logic
-(function(){
-  const btn = document.getElementById('hookToggle');
-  if(!btn || btn.__flameWired) return;
-  // If text contains a fire emoji already, wrap first occurrence; else prepend one
-  const raw = btn.textContent;
-  const m = raw && raw.match(/(.*?)(\u{1F525})(.*)/u);
-  if (m){
-    const before = (m[1]||"").trim();
-    const after  = (m[3]||"").trim();
-    btn.innerHTML = (before? before+" " : "") + '<span class="flame">🔥</span>' + (after? " "+after : "");
-  } else {
-    btn.innerHTML = '<span class="flame">🔥</span> ' + (raw||"").trim();
-  }
-  btn.__flameWired = true;
-})();
-</script>
 </body>
 </html>
